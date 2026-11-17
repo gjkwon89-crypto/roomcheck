@@ -1,6 +1,6 @@
 // 현장심사 실별 점검 - 오프라인 캐시
 // 앱을 고친 뒤에는 아래 버전 숫자를 하나 올려야 아이패드에 새 버전이 반영됩니다.
-var VERSION = 'rc-v12';
+var VERSION = 'rc-v13';
 var OCR_CACHE = 'rc-ocr'; // 글자 인식 엔진(외부 CDN) 보관 · 버전 바꿔도 유지
 var FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 

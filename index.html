@@ -45,6 +45,8 @@ table.st thead th{background:#4B5563;color:#fff;font-weight:700;text-align:cente
 .st .sv{text-align:center;background:#ECFCCB;font-weight:700}.st .sv.na{font-weight:400;color:#166534}.st .sv.na.neg{color:#DC2626}
 .st .tot th{text-align:right;background:#F8FAFC}.st .tot .sv{background:#FEF9C3;color:#B91C1C;font-size:14px}
 .wl{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#374151}.wl input{width:90px;height:32px;border:1px solid #CBD5E1;border-radius:6px;padding:0 8px;font-size:15px;text-align:right}.wl i{font-style:normal;color:#6B7280}
+.modal.scan{align-items:flex-start;padding-top:12vh}.scin{width:100%;box-sizing:border-box;font-family:inherit;font-size:22px;padding:8px 12px;margin:2px 0 6px;resize:none;border:2px solid #1D4ED8!important;border-radius:10px!important}
+.scsteps{margin:4px 0 10px;padding-left:20px;font-size:14px;color:#374151;line-height:1.7}
 .wcgrid .g>.l{flex-basis:110px}
 .pickbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px;background:#DBEAFE;border-bottom:1px solid #93C5FD;color:#1E3A8A;font-size:13px;flex-wrap:wrap}.pickbar span{flex:1 1 auto}
 .room.pick{border:1px dashed #1D4ED8;background:#F8FBFF}
@@ -537,7 +539,7 @@ function mainPanel() {
   var gen = isGeneral(r.type);
   var h = '<main><div class="rh"><div style="display:flex;flex-direction:column;flex:1 1 auto;min-width:0"><span class="meta">' + esc(r.bldg + ' ' + r.floor + ' · ' + (r.ocr ? '실명판 인식 가명칭 · ' : '') + r.type) + '</span>' +
     '<input id="roomName" aria-label="실 이름" value="' + esc(r.name) + '"></div>' +
-    '<label class="hb dark" style="position:relative;overflow:hidden">' + CAM + '실명 글자인식<input type="file" accept="image/*" capture="environment" data-photo="sign" aria-label="실명 글자인식" style="position:absolute;inset:0;opacity:0"></label>' +
+    btn('hb dark', CAM + '실명 글자인식', function () { openScan(r); }) +
     btn('hb' + (S.pick === r.id ? ' blue' : ''), S.pick === r.id ? '가져올 실을 고르세요…' : '다른 실 값 가져오기', function () { S.pick = S.pick === r.id ? null : r.id; S.confirmDel = false; render(); }) + btn('hb', '기본값으로', resetRoom) + '</div>';
   if (S.confirmDel) h += '<div class="confirm" role="alert"><strong>' + esc(r.name) + '</strong><span>을(를) 삭제할까요? 입력 내용과 사진 기록 ' + r.photos.length + '장이 함께 지워집니다.</span>' +
     btn('hb', '삭제', delRoom, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDel = false; render(); }) + '</div>';
@@ -757,7 +759,35 @@ function openPhoto(r, p) {
   };
 }
 
-// ───────────── 실명 글자 인식 (Tesseract.js · 처음 한 번 인터넷으로 받은 뒤 기기에 보관) ─────────────
+// ───────────── 실명 글자인식: 아이패드 내장 '텍스트 스캔'(Live Text) 사용 ─────────────
+// 버튼 → 빈 입력칸에 바로 커서 → [텍스트 스캔] → 실명판 비추고 [삽입] → 확인 없이 실 이름에 자동 적용
+var scanTimer = null;
+function scanPick(raw) { // 한글이 가장 많은 줄 → 그 줄에서 한글이 들어간 낱말만 (예: '2-3 과학실 Science' → '과학실')
+  var line = ocrPick(raw); if (!line) return String(raw || '').replace(/\s+/g, ' ').trim();
+  var w = line.split(' ').filter(function (t) { return /[가-힣]/.test(t); }).join(' ');
+  return w || line;
+}
+function openScan(r) {
+  var m = document.getElementById('modal');
+  m.innerHTML = '<div class="modal scan" role="dialog" aria-label="실명 글자인식"><form class="box wide" id="scf">' +
+    '<h3 style="margin:0 0 8px;font-size:16px">실명 글자인식 <small style="font-weight:400;color:#4B5563">· 지금 이름: ' + esc(r.name) + '</small></h3>' +
+    '<textarea id="scIn" class="scin" rows="2" placeholder="여기를 한 번 더 탭 → 텍스트 스캔" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>' +
+    '<ol class="scsteps"><li>입력칸을 <b>한 번 더 탭</b></li><li><b>텍스트 스캔</b> 누르기 <span class="note">(메뉴 또는 키보드 위 아이콘)</span></li><li>실명판을 비추고 <b>삽입</b> → 자동으로 이름에 들어갑니다</li></ol>' +
+    '<div class="row" style="justify-content:flex-end"><button type="button" class="hb" id="scc">취소</button></div></form></div>';
+  var inp = document.getElementById('scIn');
+  inp.focus(); // 버튼을 누른 동작 안에서 바로 커서를 넣어 키보드가 뜨게 함
+  var done = false;
+  var apply = function () {
+    if (done) return; var raw = inp.value; var v = scanPick(raw); if (!v) return;
+    done = true; clearTimeout(scanTimer); m.innerHTML = '';
+    var old = r.name; r.name = v; r.ocr = true; markDirty(r.id); render(); toast(old + ' → ' + v + ' · 다르면 이름 칸에서 고치세요', 3000);
+  };
+  inp.addEventListener('input', function () { clearTimeout(scanTimer); scanTimer = setTimeout(apply, 900); }); // 스캔 삽입은 한 번에 들어오므로 잠시 뒤 자동 적용
+  document.getElementById('scf').onsubmit = function (e) { e.preventDefault(); apply(); };
+  document.getElementById('scc').onclick = function () { clearTimeout(scanTimer); m.innerHTML = ''; };
+}
+
+// ───────────── (예전) 실명 글자 인식 (Tesseract.js · 처음 한 번 인터넷으로 받은 뒤 기기에 보관) ─────────────
 var OCR_JS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
 var ocrWorkerP = null;
 function loadScript(src) {
