@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="실별점검">
+<meta name="theme-color" content="#1B2A41">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>현장심사 실별 점검</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overscroll-behavior:none}
+body{font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;color:#1F2937;background:#1B2A41;font-size:14px;-webkit-text-size-adjust:100%}
+button,input,select{font-family:inherit}
+button,label,.room,.c,.lb,.tab{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+button{cursor:pointer}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh;min-height:520px;background:#F4F6F9;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.top{padding-top:6px}
+.bkp{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:14px;font-size:12px;font-weight:700;border:0}
+.bkp.ok{background:#DCFCE7;color:#166534}.bkp.need{background:#FED7AA;color:#9A3412}
+.install{flex:0 0 auto;background:#FEF3C7;color:#78350F;font-size:13px;padding:6px 12px;border-bottom:1px solid #FCD34D}
+.sign-img{width:100%;max-height:46vh;object-fit:contain;border-radius:8px;background:#111;margin:4px 0 8px;-webkit-user-select:text;user-select:text}
+.dl{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.dl .hb{justify-content:center;min-height:40px}
+.modal .box.wide{max-width:640px;max-height:92vh;overflow:auto}
+.rg{border-top:1px solid #E5E7EB;padding:6px 0 4px}.rgh{display:flex;align-items:center;gap:8px;font-size:14px;color:#111827}
+.rs{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:2px 0 2px 18px;font-size:12.5px}.rst{min-width:210px;color:#374151}.cnt{font-weight:700;color:#9A3412}
+.rb{flex:1 0 100%;margin:0 0 2px 18px}.rg>.rb{margin-left:18px}.rbg{display:flex;gap:8px;align-items:flex-start;padding:1px 0}.rbn{flex:0 0 96px;font-size:12px;color:#1B2A41;padding-top:1px}.rbn small{font-weight:400;color:#6B7280}
+.rl{flex:1 1 auto;display:flex;flex-wrap:wrap;gap:1px 18px;margin:0;padding:0;list-style:none;font-size:12px;color:#111827}.rl li::before{content:'· ';color:#9CA3AF}.rl span{color:#9A3412}
+.rg>.rl{margin-left:18px}
+table.st{width:auto;border-collapse:collapse;background:#fff;font-size:12px;line-height:1.25}
+table.st th,table.st td{border:1px solid #CBD5E1;padding:1px 6px;height:20px}
+.st .sg{font-size:11.5px!important;line-height:1.2}
+table.st thead th{background:#4B5563;color:#fff;font-weight:700;text-align:center}
+.st .sg{background:#fff;font-weight:700;text-align:center;color:#111827;font-size:12.5px}
+.st .si.red{color:#DC2626}.st .si small{color:#6B7280;font-size:10.5px}
+.st .sp{text-align:center;background:#F3F4F6}.st .sp.neg{color:#DC2626}
+.st .sn{text-align:center}.st .sh{text-align:center;background:#E0F2FE}
+.st .sv{text-align:center;background:#ECFCCB;font-weight:700}.st .sv.na{font-weight:400;color:#166534}.st .sv.na.neg{color:#DC2626}
+.st .tot th{text-align:right;background:#F8FAFC}.st .tot .sv{background:#FEF9C3;color:#B91C1C;font-size:14px}
+.wl{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#374151}.wl input{width:90px;height:32px;border:1px solid #CBD5E1;border-radius:6px;padding:0 8px;font-size:15px;text-align:right}.wl i{font-style:normal;color:#6B7280}
+.wcgrid .g>.l{flex-basis:110px}
+.pickbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px;background:#DBEAFE;border-bottom:1px solid #93C5FD;color:#1E3A8A;font-size:13px;flex-wrap:wrap}.pickbar span{flex:1 1 auto}
+.room.pick{border:1px dashed #1D4ED8;background:#F8FBFF}
+.prog{height:8px;border-radius:4px;background:#E5E7EB;overflow:hidden;margin:8px 0}.prog i{display:block;height:100%;background:#1D4ED8;width:0}
+.top{flex:0 0 auto;display:flex;align-items:center;gap:12px;background:#1B2A41;color:#fff;padding:6px 12px;min-height:46px;flex-wrap:wrap}
+.top select{height:32px;border-radius:6px;border:1px solid #475569;background:#24364F;color:#fff;padding:0 8px;max-width:340px}
+.net{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border-radius:14px;font-size:12px;font-weight:500;border:0}
+.net i{width:8px;height:8px;border-radius:4px;display:inline-block}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tab{min-height:32px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#CBD5E1;font-size:13px;font-weight:500}
+.tab.on{background:#F4F6F9;color:#1B2A41;font-weight:700}
+.loc{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:3px 12px;background:#fff;border-bottom:1px solid #D1D5DB;flex-wrap:wrap}
+.loc b.lbl{font-size:13px;color:#4B5563;margin-right:6px}
+.row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.lb{min-height:26px;padding:0 11px;border-radius:6px;border:1px solid #CBD5E1;background:#fff;color:#374151;font-size:13px}
+.c.dis{display:inline-flex;align-items:center;opacity:.35;background:#F3F4F6;cursor:not-allowed;text-decoration:line-through}
+.add.delf{border-color:#FCA5A5;color:#B91C1C;background:#fff}
+.lb.wall{border-style:dashed;font-size:12px;min-height:24px}.lb.wall.on{border-style:solid}
+.lb.on{background:#1B2A41;color:#fff;border-color:#1B2A41;font-weight:700}
+.add{min-height:26px;padding:0 10px;border-radius:6px;border:1px dashed #64748B;background:#F8FAFC;color:#1B2A41;font-size:12px}
+.fl{width:28px;font-size:11px;font-weight:700;color:#4B5563}
+.body{flex:1 1 auto;display:flex;min-height:0}
+aside{width:320px;flex:0 0 auto;display:flex;flex-direction:column;background:#fff;border-right:1px solid #D1D5DB;min-height:0}
+.list{flex:1 1 auto;overflow-y:auto;padding:0 8px 8px;display:flex;flex-direction:column;gap:3px;min-height:0}
+.room{width:100%;min-height:32px;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:2px 10px;border-radius:8px;border:1px solid #E5E7EB;background:#fff;text-align:left}
+.room.on{border:2px solid #1D4ED8;background:#EFF6FF}
+.room .nm{display:flex;align-items:baseline;gap:6px;min-width:0;white-space:nowrap;overflow:hidden}
+.room .nm strong{font-size:14px;color:#111827}
+.room .nm span{font-size:11px;color:#4B5563;overflow:hidden;text-overflow:ellipsis}
+.pill{flex:0 0 auto;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.pill.ng{background:#FFEDD5;color:#9A3412}.pill.ok{background:#F3F4F6;color:#374151}
+.adds{border-top:1px solid #E5E7EB;padding:8px;background:#F8FAFC}
+.adds .t{font-size:12px;font-weight:700;color:#4B5563;margin:0 2px 6px}
+.addgrid{display:flex;gap:6px}
+.addmain{flex:1 1 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.addwc{flex:0 0 112px;display:flex;flex-direction:column;gap:4px;padding-left:6px;border-left:1px solid #E5E7EB}
+.ab{min-height:38px;border:1px solid #CBD5E1;border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 4px}
+.ab strong{font-size:13px;color:#1B2A41;line-height:1.3}.ab span{font-size:11px;color:#4B5563;line-height:1.3}
+.wb{min-height:29px;border:1px solid #CBD5E1;border-radius:8px;background:#fff;font-size:12px;font-weight:700;color:#1B2A41;text-align:left;padding:0 8px}
+main{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0}
+.rh{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:4px 12px;background:#fff;border-bottom:1px solid #E5E7EB;flex-wrap:wrap}
+.rh .meta{font-size:11px;color:#4B5563;line-height:1.2}
+.rh input{height:30px;border:1px solid transparent;border-bottom-color:#CBD5E1;font-size:17px;font-weight:700;color:#111827;padding:0 4px;width:220px;background:transparent}
+.hb{min-height:32px;padding:0 11px;border-radius:6px;border:1px solid #CBD5E1;background:#fff;color:#374151;font-size:13px;display:inline-flex;align-items:center;gap:5px}
+.hb.dark{background:#1B2A41;color:#fff;border-color:#1B2A41}
+.hb.red{border-color:#FCA5A5;color:#B91C1C}
+.hb.sm{min-height:26px;padding:0 9px;font-size:12px}
+.hb.blue{background:#1D4ED8;color:#fff;border-color:#1D4ED8;font-weight:700}
+.scroll{flex:1 1 auto;overflow-y:auto;padding:6px 12px;min-height:0}
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:4px 10px;margin-bottom:5px}
+.card h3{margin:0 0 1px;font-size:13px;font-weight:700;color:#111827;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.card h3 small{font-size:12px;font-weight:400;color:#4B5563}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px}
+.g{display:flex;align-items:center;gap:8px;padding:1px 0;border-bottom:1px solid #F1F5F9;min-width:0}
+.g>.l{flex:0 0 88px;font-size:12px;font-weight:500;color:#111827;line-height:1.2}
+.g>.l small{display:block;font-size:10px;font-weight:400;color:#4B5563}
+.opts{display:flex;flex-direction:column;gap:2px}
+.optrow{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.optrow em{font-style:normal;width:76px;font-size:11px;color:#374151}
+.c{min-height:28px;padding:0 9px;border-radius:5px;font-size:12px;white-space:nowrap;border:1px solid #CBD5E1;background:#fff;color:#374151}
+.c.on{border:2px solid #1D4ED8;background:#EFF6FF;color:#1E3A8A;font-weight:700}
+.c.bad{border:2px solid #EA580C;background:#FFF7ED;color:#9A3412;font-weight:700}
+.inline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 20px}
+.inline .grp{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.inline .grp>b{font-size:12px;width:60px}
+.dt{min-height:28px;padding:0 9px;border-radius:5px;font-size:12px;display:inline-flex;align-items:center;border:1px solid #CBD5E1;background:#F8FAFC;color:#374151}
+.dt.on{border:2px solid #1B2A41;background:#fff;font-weight:700;color:#111827}
+.dt .pill{margin-left:6px}
+.badge{padding:1px 8px;border-radius:10px;font-size:12px;font-weight:700}
+.b-na{background:#F3F4F6;color:#374151}.b-good{background:#DCFCE7;color:#166534}.b-bad{background:#FFEDD5;color:#9A3412}
+.defs ul{margin:0;padding:0;list-style:none}
+.defs li{display:flex;gap:8px;font-size:12px;padding:1px 0;border-bottom:1px solid #F1F5F9}
+.defs li b{flex:0 0 84px;color:#9A3412}
+.bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:5px 12px;background:#fff;border-top:1px solid #D1D5DB;flex-wrap:wrap}
+.shoot{min-height:42px;padding:0 16px;border:0;border-radius:8px;background:#1D4ED8;color:#fff;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;position:relative;overflow:hidden}
+.shoot input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.th{width:40px;height:40px;border-radius:5px;background:#CBD5E1;object-fit:cover}
+.next{margin-left:auto;min-height:42px;padding:0 18px;border:0;border-radius:8px;background:#1B2A41;color:#fff;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;line-height:1.2}
+.next span{font-size:12px;color:#CBD5E1}
+.confirm{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:6px 12px;background:#FEF2F2;border-bottom:1px solid #FCA5A5;color:#991B1B}
+.empty{flex:1 1 auto;display:flex;align-items:center;justify-content:center;color:#4B5563;font-size:15px;padding:20px;text-align:center}
+.toast{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:20;max-width:90vw}
+.page{flex:1 1 auto;overflow:auto;padding:12px 16px}
+table.t{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+table.t th{padding:6px 8px;border:1px solid #CBD5E1;background:#F1F5F9;font-weight:700;color:#111827;white-space:nowrap}
+table.t td{padding:5px 8px;border:1px solid #E2E8F0;color:#374151;vertical-align:top}
+.note{font-size:12px;color:#4B5563;line-height:1.6}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:30;padding:16px}
+.modal .box{background:#fff;border-radius:10px;padding:16px;width:100%;max-width:420px}
+.modal input{width:100%;height:38px;border:1px solid #CBD5E1;border-radius:6px;padding:0 10px;font-size:15px;margin:4px 0 10px}
+@media (max-width:820px){aside{width:250px}.grid2{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div id="app"><div class="empty">불러오는 중…</div></div>
+<div id="toast" class="toast" role="status" style="display:none"></div>
+<div id="modal"></div>
+<script>
+(function () {
+'use strict';
+// ───────────── 평가 양식 ─────────────
+var AREAS = ['교수학습영역', '지원영역', '관리행정영역', '공용영역'];
+var GOOD = ['양호', '미흡'];
+var DOOR_FORM = [
+  { key: 'shape', label: '문 형태', opts: ['미닫이', '여닫이', '자동문', '문없음'] },
+  { key: 'pinch', label: '손끼임 방지', opts: ['완충재', '속도제어', '없음'], bad: ['없음'], when: function (d) { return d.shape !== '문없음'; } },
+  { key: 'glass', label: '유리', opts: ['유리 없음', '일반유리', '강화유리'], bad: ['일반유리'], when: function (d) { return d.shape !== '문없음'; } },
+  { key: 'film', label: '비산방지필름', opts: ['적용', '미적용'], bad: ['미적용'], when: function (d) { return d.shape !== '문없음' && d.glass !== '유리 없음'; }, slot: function (d) { return d.shape !== '문없음'; } },
+  { key: 'sight', label: '시창', opts: ['적용', '미적용'], bad: ['미적용'], when: function (d) { return d.shape === '여닫이'; }, lock: function (d) { return d.glass && d.glass !== '유리 없음' ? '적용' : null; }, lockNote: '유리문은 시창 적용' },
+  { key: 'floorVis', label: '바닥 시인성', opts: ['해당없음', '적용', '미적용'], bad: ['미적용'], when: function (d) { return d.shape === '여닫이'; } },
+  { key: 'step', label: '단차', opts: ['없음', '있음'], bad: ['있음'], grouped: true },
+  { key: 'protrude', label: '돌출물', opts: ['없음', '있음'], bad: ['있음'], grouped: true }
+];
+function evalOn(w) { return w.has === '있음' && w.ground === '지상층 아님'; }
+var WIN_FORM = [
+  { key: 'has', label: '창호 유무', opts: ['있음', '없음'] },
+  { key: 'ground', label: '지상층 여부', opts: ['지상층', '지상층 아님'], when: function (w) { return w.has === '있음'; } },
+  { key: 'measure', label: '조치 내용', sub: '(하나 선택)', opts: ['창대높이 1.2m 이상', '추락방지봉', '프로젝트창', '스토퍼', '없음'], bad: ['없음'], when: evalOn, full: true }
+];
+// 예전 방식(항목 4개 따로 입력)으로 저장된 값을 하나로 바꿈
+function winMeasure(w) {
+  if (w.measure) return w.measure;
+  w.measure = w.height === '1.2m 이상' ? '창대높이 1.2m 이상' : w.bar === '적용' ? '추락방지봉' : w.project === '예' ? '프로젝트창' : w.stopper === '적용' ? '스토퍼' : '없음';
+  return w.measure;
+}
+var COR_FORM = [
+  { key: 'shape', label: '복도 형태', opts: ['ㅡ자형', 'ㄱ자형', 'ㄷ자형', 'ㅁ자형'] },
+  { key: 'type', label: '복도 구분', opts: ['편복도', '중복도'] },
+  { key: 'emerg', label: '응급통신시설', opts: ['있음', '없음'], bad: ['없음'] },
+  { key: 'link', label: '연계여부', opts: ['연계', '미연계'], bad: ['미연계'], when: function (c) { return c.emerg === '있음'; }, slot: function () { return true; } },
+  { key: 'wSide', label: '유효너비', opts: ['1.8m 이상', '1.8m 미만'], bad: ['1.8m 미만'], when: function (c) { return c.type === '편복도'; } },
+  { key: 'wMid', label: '유효너비', opts: ['2.4m 이상', '2.4m 미만'], bad: ['2.4m 미만'], when: function (c) { return c.type === '중복도'; } },
+  { key: 'step', label: '바닥 단차', opts: ['해당없음', '단차(시인성조치)', '단차(시인성조치X)'], bad: ['단차(시인성조치X)'] }
+];
+var STAIR_FORM = [
+  { label: '논슬립', compact: true, rows: [{ key: 'nonslip', name: '설치여부', opts: ['설치', '미설치'], bad: ['미설치'] },
+    { key: 'nonslipCare', name: '관리상태', opts: GOOD, bad: ['미흡'], when: function (s) { return s.nonslip === '설치'; } }] },
+  { label: '첫·끝단 시인성', rows: [{ key: 'edge', opts: ['적용', '미적용'], bad: ['미적용'] }] },
+  { label: '단높이', sub: function (sc) { return sc === '초등학교' ? '(160mm 이하)' : '(180mm 이하)'; }, rows: [{ key: 'riser', opts: GOOD, bad: ['미흡'] }] },
+  { label: '단너비', sub: function () { return '(260mm 이상)'; }, rows: [{ key: 'tread', opts: GOOD, bad: ['미흡'] }] },
+  { label: '난간살 설치기준', rows: [{ key: 'baluster', opts: GOOD, bad: ['미흡'] }] },
+  { label: '난간높이', rows: [{ key: 'rail', opts: GOOD, bad: ['미흡'] }] },
+  { label: '최상층 난간', rows: [{ key: 'top', opts: ['1.5m 이상', '1.5m 미만', '해당없음'], bad: ['1.5m 미만'] }] },
+  { label: '유효너비', sub: function () { return '(하나라도 미흡 시 미흡)'; }, rows: [{ key: 'wStair', name: '계단 유효폭', opts: GOOD, bad: ['미흡'] }, { key: 'wLand', name: '계단참 유효폭', opts: GOOD, bad: ['미흡'] }] }
+];
+// 복도 '모서리 완충': 하위 3개 중 하나라도 미흡이면 미흡
+// 외벽 길이 (전체 기본 100)
+function wallLen(r) { if (!r.wl) r.wl = { total: 100, a: 0, b: 0 }; return r.wl; }
+// 옥상층 '옥상': 난간 높이(1.2m 이상) 평가 · 파라펫 미흡은 배점과 무관하게 권고조치로 표기
+var ROOFTOP_FORM = [
+  { key: 'rail', label: '난간 높이', sub: '(1.2m 이상)', opts: ['1.2m 이상', '1.2m 미만'], bad: ['1.2m 미만'] },
+  { key: 'parapet', label: '파라펫', sub: '(권고조치)', opts: ['양호', '미흡'], bad: ['미흡'] }
+];
+function isRoofLike(t) { return t === '옥상' || t === '테라스'; } // 옥상·테라스 같은 평가
+function rooftop(r) { if (!r.top) r.top = { rail: '1.2m 이상', parapet: '양호' }; return r.top; }
+function rooftopDefs(r) {
+  var t = rooftop(r), out = [];
+  if (t.rail === '1.2m 미만') out.push({ where: r.type, what: '난간 높이 1.2m 미만' });
+  if (t.parapet === '미흡') out.push({ where: r.type, what: '파라펫 관련 권고조치 필요', rec: true }); // 권고사항: 미흡 개수에서 제외
+  return out;
+}
+// 실별 '2개층 OPEN구간': 있음일 때만 난간 높이(1.2m 이상) 평가 → 점수표 공간추락방지 난간(지원·공용영역)
+var OPEN_FORM = [
+  { key: 'has', label: '2개층 OPEN구간', sub: '해당여부', opts: ['있음', '없음'] },
+  { key: 'rail', label: '난간 높이', sub: '(1.2m 이상)', opts: ['1.2m 이상', '1.2m 미만'], bad: ['1.2m 미만'], when: function (o) { return o.has === '있음'; } }
+];
+function openShown(r) { return r.area === '지원영역' || r.area === '공용영역'; } // 지원·공용영역일 때만 OPEN구간 평가
+function openOn(r) { return openShown(r) && openOf(r).has === '있음'; }
+function openOf(r) { if (!r.open) r.open = { has: '없음', rail: '1.2m 이상' }; return r.open; }
+var EDGE_ITEMS = [['eWall', '벽체 모서리'], ['eCol', '기둥 모서리'], ['eFurn', '가구 모서리']];
+function edgeOf(c) {
+  if (c.eWall == null) { c.eWall = c.protrude === '있음' ? '미흡' : '양호'; c.eCol = '양호'; c.eFurn = c.corner || '양호'; } // 예전 입력값 변환
+  var bad = EDGE_ITEMS.filter(function (k) { return c[k[0]] === '미흡'; }).map(function (k) { return k[1]; });
+  var na = EDGE_ITEMS.every(function (k) { return c[k[0]] === '해당없음'; });
+  return { bad: bad, na: na };
+}
+function corEdgeGroup(r) {
+  var c = r.cor, e = edgeOf(c);
+  return '<div class="g" role="group" aria-label="모서리 완충" style="grid-column:1/-1"><span class="l">모서리 완충<small>' + (e.na ? '해당없음' : e.bad.length ? '<b style="color:#9A3412">미흡</b>' : '양호') + '</small></span><div class="opts">' +
+    EDGE_ITEMS.map(function (k) {
+      return '<div class="optrow"><em style="width:70px">' + k[1] + '</em>' + ['양호', '미흡', '해당없음'].map(function (o) { var on = c[k[0]] === o, bad = on && o === '미흡';
+        return btn('c' + (bad ? ' bad' : on ? ' on' : ''), o, function () { upd(function (x) { x.cor[k[0]] = o; }); }); }).join('') + '</div>';
+    }).join('') + '</div></div>';
+}
+var GYM_FORM = [
+  { key: 'direct', label: '직통계단 설치', opts: ['설치', '미설치', '해당없음'], bad: ['미설치'] },
+  { key: 'open', label: '상시개방 여부', opts: ['상시개방', '미개방'] },
+  { key: 'pad', label: '충격흡수재', sub: '(H 1.5m 이상)', opts: ['설치(1.5m 이상)', '설치(1.5m 미만)', '미설치'], bad: ['설치(1.5m 미만)', '미설치'] },
+  { key: 'lock', label: '건축물 시건', sub: '(감점항목)', opts: ['시건X', '시건O'], bad: ['시건O'] }
+];
+function newGym() { return { direct: '설치', open: '상시개방', pad: '설치(1.5m 이상)', lock: '시건X' }; }
+var FIN_FORM = [{ key: 'finish', label: '마감재료', opts: ['불연', '준불연', '기타(확인필요)'], bad: ['기타(확인필요)'] }];
+var WC_FORM = [
+  { key: 'emerg', label: '응급통신시설', opts: ['있음', '없음'], bad: ['없음'] },
+  { key: 'link', label: '연계여부', opts: ['연계', '미연계'], bad: ['미연계'], when: function (c) { return c.emerg === '있음'; }, slot: function () { return true; } },
+  { key: 'card', label: '불법촬영 비치카드', sub: '(가산점 · 층별 1개소 이상)', opts: ['비치', '없음'] }
+];
+var LIB_FORM = [
+  { key: 'finish', label: '내부 마감관리 상태', opts: ['양호', '미흡'], bad: ['미흡'] },
+  { key: 'tip', label: '전도방지조치', opts: ['적용', '미적용'], bad: ['미적용'] }
+];
+function newLib() { return { finish: '양호', tip: '적용' }; }
+function newWc() { return { emerg: '있음', link: '연계', card: '비치' }; }
+function isWc(t) { return WC_TYPES.indexOf(t) >= 0; }
+function isDisWc(t) { return isWc(t) && t.indexOf('장애인') === 0; } // 장애인화장실: 응급통신시설 배점 미반영
+var SIMPLE = { '옥상': [], '테라스': [], '외벽': [] };
+var MAIN_TYPES = ['개별실', '계단', '복도', '테라스', '도서관', '체육관'];
+var ROOF = '옥상층';
+var COMMON = '동 공통';
+var WC_TYPES = ['화장실(남)', '화장실(여)', '장애인화장실(남)', '장애인화장실(여)'];
+var DEFAULT_AREA = { '개별실': '교수학습영역', '도서관': '지원영역', '체육관': '지원영역', '복도': '공용영역', '계단': '공용영역' };
+var BASE_NAME = { '화장실(남)': '남자화장실', '화장실(여)': '여자화장실', '장애인화장실(남)': '장애인화장실(남)', '장애인화장실(여)': '장애인화장실(여)', '옥상': '옥상', '테라스': '테라스', '도서관': '도서관', '체육관': '체육관' };
+
+function isGeneral(t) { return !SIMPLE[t]; }
+function newDoor() { return { shape: '미닫이', pinch: '완충재', glass: '유리 없음', film: '미적용', sight: '적용', floorVis: '해당없음', step: '없음', protrude: '없음' }; }
+function newWin(f) { return { has: '있음', ground: f === '1층' ? '지상층' : '지상층 아님', measure: '없음' }; }
+function newCor() { return { shape: 'ㅡ자형', type: '편복도', emerg: '없음', link: '연계', wSide: '1.8m 미만', wMid: '2.4m 미만', step: '해당없음', eWall: '양호', eCol: '양호', eFurn: '양호' }; }
+function newStair() { return { nonslip: '설치', nonslipCare: '양호', edge: '적용', riser: '양호', tread: '양호', baluster: '양호', rail: '양호', top: '해당없음', wStair: '양호', wLand: '양호' }; }
+function rid() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function makeRoom(bldg, floor, name, type, order) {
+  var res = {}; (SIMPLE[type] || []).forEach(function (k) { res[k] = 'ok'; });
+  return { id: rid(), bldg: bldg, floor: floor, name: name, type: type, order: order || Date.now(), ocr: false, area: DEFAULT_AREA[type] || '공용영역',
+    doors: type === '계단' ? [] : (isGeneral(type) ? [newDoor()] : []), win: newWin(floor), fin: { finish: '기타(확인필요)' },
+    cor: newCor(), stair: newStair(), gym: newGym(), wc: newWc(), lib: newLib(), res: res, photos: [] };
+}
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+// ───────────── 판정 ─────────────
+function issues(form, o) {
+  var out = [];
+  form.forEach(function (f) { if (f.when && !f.when(o)) return; if (f.bad && f.bad.indexOf(o[f.key]) >= 0) out.push(f.label + ' ' + o[f.key]); });
+  return out;
+}
+function doorIssues(d) {
+  var out = issues(DOOR_FORM.filter(function (f) { return ['step', 'protrude', 'glass', 'film'].indexOf(f.key) < 0; }), d);
+  var p = []; if (d.step === '있음') p.push('단차'); if (d.protrude === '있음') p.push('돌출물');
+  if (p.length) out.push('문 돌출물 감점(' + p.join(', ') + ')');
+  return out;
+}
+function glassGrade(d) {
+  if (d.shape === '문없음' || d.glass === '유리 없음') return '';
+  var t = d.glass === '강화유리', f = d.film === '적용';
+  return t && f ? 'S' : (t || f ? 'A' : '미흡');
+}
+function winState(w) { if (!evalOn(w)) return 'na'; return winMeasure(w) !== '없음' ? 'good' : 'bad'; }
+function stairDefs(s) {
+  var out = [], add = function (w, x) { out.push({ where: w, what: x }); };
+  if (s.nonslip === '미설치') add('논슬립', '미설치'); else if (s.nonslipCare === '미흡') add('논슬립', '관리상태 미흡');
+  if (s.edge === '미적용') add('첫·끝단 시인성', '미적용');
+  if (s.riser === '미흡') add('계단설치기준', '단높이 미흡');
+  if (s.tread === '미흡') add('계단설치기준', '단너비 미흡');
+  if (s.baluster === '미흡') add('난간살 설치기준', '미흡');
+  if (s.rail === '미흡') add('난간높이', '미흡');
+  if (s.top === '1.5m 미만') add('최상층 난간', '1.5m 미만');
+  var w = []; if (s.wStair === '미흡') w.push('계단 유효폭'); if (s.wLand === '미흡') w.push('계단참 유효폭');
+  if (w.length) add('유효너비', '감점항목(' + w.join(', ') + ')');
+  return out;
+}
+function normDoors(r) { (r.doors || []).forEach(function (d) { if (d.glass && d.glass !== '유리 없음') d.sight = '적용'; }); }
+function defsOf(r) {
+  normDoors(r);
+  var out = [];
+  if (!isGeneral(r.type)) { for (var k in r.res) if (r.res[k] === 'ng' && SIMPLE[r.type].indexOf(k) >= 0) out.push({ where: '점검', what: k + ' 미흡' }); if (isRoofLike(r.type)) rooftopDefs(r).forEach(function (x) { out.push(x); }); return out; }
+  r.doors.forEach(function (d, i) { doorIssues(d).forEach(function (x) { out.push({ where: '문 ' + (i + 1), what: x }); }); });
+  r.doors.forEach(function (d, i) {
+    var g = glassGrade(d); if (!g || g === 'S') return;
+    var why = []; if (d.glass !== '강화유리') why.push(d.glass); if (d.film !== '적용') why.push('비산방지필름 미적용');
+    out.push({ where: '유리', what: '문 ' + (i + 1) + ' · ' + why.join(', ') });
+  });
+  if (openOn(r) && r.open.rail === '1.2m 미만') out.push({ where: 'OPEN구간', what: '2개층 OPEN구간 난간 1.2m 미만' });
+  if (r.type === '복도') { issues(COR_FORM, r.cor).forEach(function (x) { out.push({ where: '복도', what: x.replace('바닥 단차 단차(', '바닥 단차(') }); }); var eg = edgeOf(r.cor); if (eg.bad.length) out.push({ where: '복도', what: '모서리 완충 미흡(' + eg.bad.join(', ') + ')' }); }
+  if (r.type === '계단') stairDefs(r.stair).forEach(function (x) { out.push(x); });
+  if (r.type === '도서관') issues(LIB_FORM, Object.assign(newLib(), r.lib || {})).forEach(function (x) { out.push({ where: '도서관', what: x }); });
+  if (isWc(r.type) && !isDisWc(r.type)) issues(WC_FORM, Object.assign(newWc(), r.wc || {})).forEach(function (x) { out.push({ where: '화장실', what: x }); });
+  if (r.type === '체육관') {
+    var gy = r.gym || newGym();
+    issues(GYM_FORM.filter(function (f) { return f.key !== 'lock'; }), gy).forEach(function (x) { out.push({ where: '체육관', what: x }); });
+    if (gy.lock === '시건O' || gy.lock === '시건') out.push({ where: '체육관', what: '감점항목(건축물 시건)' });
+  }
+  if (winState(r.win) === 'bad') out.push({ where: '추락방지조치', what: '미흡' });
+  issues(FIN_FORM, r.fin).forEach(function (x) { out.push({ where: '마감재료', what: x }); });
+  return out;
+}
+function glassReport(rooms) {
+  var fl = {}, keys = [];
+  rooms.forEach(function (r) {
+    if (!isGeneral(r.type)) return;
+    if (!fl[r.floor]) { fl[r.floor] = { floor: r.floor, S: 0, A: 0, N: 0 }; keys.push(r.floor); }
+    r.doors.forEach(function (d) { var g = glassGrade(d); if (g === 'S') fl[r.floor].S++; else if (g === 'A') fl[r.floor].A++; else if (g === '미흡') fl[r.floor].N++; });
+  });
+  var rows = keys.map(function (k) { return fl[k]; }).sort(function (a, b) { return floorNum(a.floor) - floorNum(b.floor); });
+  var n = 0, cS = 0, cA = 0, tS = 0, tA = 0, tN = 0;
+  rows.forEach(function (f) {
+    f.total = f.S + f.A + f.N; tS += f.S; tA += f.A; tN += f.N;
+    f.grade = !f.total ? '' : (f.N ? '미흡' : (f.A ? 'A' : 'S'));
+    f.score = f.grade ? { S: 6, A: 4, '미흡': 0 }[f.grade] : '-';
+    if (f.grade) { n++; if (f.grade === 'S') cS++; if (f.grade === 'A') cA++; }
+  });
+  var fin = '';
+  if (n) { var q = (cS + cA) / n; fin = cS === n ? 6 : q === 1 ? 4 : q >= 0.75 ? 3 : q >= 0.5 ? 2 : q >= 0.25 ? 1 : 0; }
+  return { rows: rows.filter(function (f) { return f.total; }), tS: tS, tA: tA, tN: tN, n: n, cS: cS, cA: cA, final: fin };
+}
+function floorNum(f) { if (f === ROOF) return 9999; if (f === COMMON) return -9999; return f.charAt(0) === 'B' ? -parseInt(f.slice(1), 10) : parseInt(f, 10); }
+function fnum(f) { return f.charAt(0) === 'B' ? f : f.replace('층', ''); }
+
+// ───────────── 상태 · 로컬 저장 ─────────────
+var S = {
+  projects: [], project: null, site: null, rooms: {}, bldg: null, floor: null, cur: null, door: 0,
+  view: 'input', confirmDel: false, me: null, pending: {}, pendingSite: false, photosQ: 0,
+  dbState: 'connecting', canWrite: true, lastSync: null
+};
+var db = null, assets = null, downloads = null, user = null, unsub = null, unsubProj = null;
+
+function lsGet(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function saveLocal() {
+  if (!S.project) return;
+  lsSet('rc:p:' + S.project, { site: S.site, rooms: S.rooms, pending: S.pending, pendingSite: S.pendingSite });
+  lsSet('rc:last', { project: S.project, bldg: S.bldg, floor: S.floor });
+}
+function loadLocal(p) {
+  var d = lsGet('rc:p:' + p) || {};
+  S.site = d.site || defaultSite(); S.rooms = d.rooms || {};
+  Object.keys(S.rooms).forEach(function (id) {
+    var r = S.rooms[id]; if (r.type !== '외벽' || r.floor === COMMON) return;
+    var touched = (r.photos && r.photos.length) || Object.keys(r.res || {}).some(function (k) { return r.res[k] === 'ng'; });
+    if (!touched) { delete S.rooms[id]; return; }
+    r.name = '외벽(' + r.floor + ')'; r.floor = COMMON;
+  });
+  Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.cor && r.cor.corner == null) r.cor.corner = '양호'; if (r.cor && r.cor.step === '없음') r.cor.step = '해당없음'; if (r.cor && r.cor.step === '있음') r.cor.step = '단차(시인성조치X)'; if (isWc(r.type) && !r.wc) { r.wc = newWc(); if (!r.doors || !r.doors.length) r.doors = [newDoor()]; } }); S.pending = d.pending || {}; S.pendingSite = !!d.pendingSite;
+}
+function defaultSite() { return { bldgList: [], up: ['1층'], down: [], school: '중·고등학교' }; }
+function pendingCount() { return 0; }
+
+// 사진 보관 (오프라인 대기용): IndexedDB, 없으면 메모리
+var idb = null, memPhotos = {};
+function openIdb() {
+  return new Promise(function (res) {
+    try {
+      var rq = indexedDB.open('roomcheck', 1);
+      rq.onupgradeneeded = function () { rq.result.createObjectStore('photos'); };
+      rq.onsuccess = function () { idb = rq.result; res(); };
+      rq.onerror = function () { res(); };
+    } catch (e) { res(); }
+  });
+}
+function idbAll() {
+  return new Promise(function (res) {
+    if (!idb) { res(Object.keys(memPhotos).map(function (k) { return memPhotos[k]; })); return; }
+    try {
+      var out = [], tx = idb.transaction('photos'), cur = tx.objectStore('photos').openCursor();
+      cur.onsuccess = function () { var c = cur.result; if (c) { out.push(c.value); c.continue(); } else res(out); };
+      cur.onerror = function () { res(out); };
+    } catch (e) { res([]); }
+  });
+}
+function idbPut(v) { memPhotos[v.key] = v; if (!idb) return Promise.resolve(false); return new Promise(function (res) { try { var tx = idb.transaction('photos', 'readwrite'); tx.objectStore('photos').put(v, v.key); tx.oncomplete = function () { res(true); }; tx.onerror = function () { res(false); }; tx.onabort = function () { res(false); }; } catch (e) { res(false); } }); }
+function idbDel(k) { delete memPhotos[k]; if (!idb) return Promise.resolve(); return new Promise(function (res) { try { var tx = idb.transaction('photos', 'readwrite'); tx.objectStore('photos').delete(k); tx.oncomplete = res; tx.onerror = res; } catch (e) { res(); } }); }
+var localUrls = {};
+
+// ───────────── 로컬 저장 (오프라인 전용) ─────────────
+function scheduleFlush() {}
+function subscribe() {}
+function markDirty(id) { var r = S.rooms[id]; if (r) { r.updatedAt = new Date().toISOString(); } touchData(); saveLocal(); }
+function markSite() { touchData(); saveLocal(); }
+function touchData() { lsSet('rc:dirtyAt', new Date().toISOString()); }
+function projectInfo(id) { for (var i = 0; i < S.projects.length; i++) if (S.projects[i].id === id) return S.projects[i]; return null; }
+
+// ───────────── 동작 ─────────────
+function here() {
+  var list = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (r) { return r.bldg === S.bldg && r.floor === S.floor; });
+  var rank = function (r) { return r.type === '외벽' ? 2 : (r.type === '복도' ? 1 : 0); };
+  return list.sort(function (a, b) { return rank(a) - rank(b) || a.order - b.order; });
+}
+function suggest(type) {
+  var same = here().filter(function (r) { return r.type === type; });
+  if (type === '개별실') { var max = 0; same.forEach(function (r) { var m = /^(\d+)실$/.exec(r.name); if (m) max = Math.max(max, +m[1]); }); return String(max + 1).padStart(2, '0') + '실'; }
+  if (type === '계단') return '계단실-' + (same.length + 1);
+  if (type === '복도') return same.length ? '복도-' + (same.length + 1) : '복도';
+  var base = BASE_NAME[type] || type; return same.length ? base + '-' + (same.length + 1) : base;
+}
+function ensureAuto() {
+  if (!S.bldg || !S.floor) return;
+  var h = here();
+  (S.floor === COMMON ? [['외벽', '외벽']] : S.floor === ROOF ? [['옥상', '옥상']] : [['복도', '복도']]).forEach(function (t, i) {
+    if (!h.some(function (r) { return r.type === t[0]; })) { var r = makeRoom(S.bldg, S.floor, t[1], t[0], Date.now() + i); S.rooms[r.id] = r; markDirty(r.id); }
+  });
+}
+function goto(b, f) { S.confirmDelFloor = null; S.confirmDelBldg = null; S.bldg = b; S.floor = f; S.cur = null; S.door = 0; S.confirmDel = false; S.confirmDelAll = false; ensureAuto(); if (f === COMMON) { var hw = here(); if (hw.length) S.cur = hw[0].id; } saveLocal(); render(); }
+function addRoom(type) {
+  S.pick = null;
+  var r = makeRoom(S.bldg, S.floor, suggest(type), type);
+  S.rooms[r.id] = r; S.cur = r.id; S.door = 0; markDirty(r.id); toast(r.name + ' 추가'); render();
+}
+function upd(fn) { var r = S.rooms[S.cur]; if (!r) return; fn(r); markDirty(r.id); render(); }
+function cur() { var r = S.rooms[S.cur]; return r && r.bldg === S.bldg && r.floor === S.floor ? r : null; }
+
+// ───────────── 화면 ─────────────
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+var ACT = {}, actN = 0;
+function act(fn) { var k = 'a' + (actN++); ACT[k] = fn; return k; }
+function btn(cls, label, fn, extra) { return '<button type="button" class="' + cls + '" data-a="' + act(fn) + '"' + (extra || '') + '>' + label + '</button>'; }
+// 출입문 '문 돌출물'(감점항목): 하위 항목 단차 · 돌출물
+function doorBumpGroup(d, di) {
+  return '<div class="g" role="group" aria-label="문 돌출물"><span class="l">문 돌출물<small>(감점항목)</small></span><div class="opts">' +
+    [['step', '단차'], ['protrude', '돌출물']].map(function (k) {
+      return '<div class="optrow"><em style="width:40px">' + k[1] + '</em>' + ['없음', '있음'].map(function (o) { var on = d[k[0]] === o, bad = on && o === '있음';
+        return btn('c' + (bad ? ' bad' : on ? ' on' : ''), o, function () { upd(function (x) { x.doors[di][k[0]] = o; }); }); }).join('') + '</div>';
+    }).join('') + '</div></div>';
+}
+function chips(form, obj, setter) {
+  return form.filter(function (f) { return !f.grouped && (!f.when || f.when(obj) || (f.slot && f.slot(obj))); }).map(function (f) {
+    if (f.when && !f.when(obj)) return '<div class="g"></div>';
+    var lk = f.lock && f.lock(obj); if (lk) obj[f.key] = lk;
+    var sub = lk && f.lockNote ? f.lockNote : f.sub;
+    return '<div class="g" role="group" aria-label="' + esc(f.label) + '"' + (f.full ? ' style="grid-column:1/-1"' : '') + '><span class="l">' + esc(f.label) + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span><div class="optrow">' +
+      f.opts.map(function (o) { var on = obj[f.key] === o, bad = on && f.bad && f.bad.indexOf(o) >= 0;
+        if (lk && o !== lk) return '<span class="c dis" aria-disabled="true">' + esc(o) + '</span>';
+        return btn('c' + (bad ? ' bad' : on ? ' on' : ''), esc(o), function () { setter(f.key, o); }, ' aria-pressed="' + on + '"'); }).join('') + '</div></div>';
+  }).join('');
+}
+var CAM = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7l1.5-3h5L16 7"></path><circle cx="12" cy="13.5" r="3.5"></circle></svg>';
+
+function render() {
+  ACT = {}; actN = 0;
+  var app = document.getElementById('app');
+  if (!S.project) { app.innerHTML = topbar() + '<div class="empty"><div><p style="font-size:16px;font-weight:700">점검할 프로젝트를 고르거나 새로 만드세요</p>' + btn('hb blue', '+ 새 프로젝트', openNewProject) + '</div></div>'; return; }
+  var html = topbar();
+  if (S.view === 'input' && !S.bldg) html += locbar() + '<div class="empty"><div><p style="font-size:16px;font-weight:700;margin:0 0 6px">먼저 동을 추가하세요</p><p class="note" style="margin:0 0 12px">동 이름(예: 본관, 신관, 다목적강당)을 입력하면 1층부터 점검을 시작할 수 있습니다.</p>' + btn('hb blue', '+ 동 추가', openNewBldg) + '</div></div>';
+  else if (S.view === 'input') html += locbar() + pickBar() + delAllBar() + delFloorBar() + delBldgBar() + '<div class="body">' + aside() + mainPanel() + '</div>';
+  else if (S.view === 'table') html += tablePage();
+  else if (S.view === 'score') html += scorePage();
+  else html += resultPage();
+  var sc = document.querySelector('.scroll'), st = sc ? sc.scrollTop : 0;
+  app.innerHTML = html;
+  var sc2 = document.querySelector('.scroll'); if (sc2) sc2.scrollTop = st;
+}
+function topbar() {
+  var label = '오프라인 · 이 기기에 저장' + (S.persist === false ? ' (저장공간 보호 안 됨)' : ''), bg = 'background:#E0F2FE;color:#075985';
+  var bAt = lsGet('rc:backupAt'), dAt = lsGet('rc:dirtyAt');
+  var need = dAt && (!bAt || dAt > bAt);
+  var bLabel = bAt ? '백업 ' + shortTime(bAt) : '백업 안 함';
+  var bk = btn('bkp ' + (need ? 'need' : 'ok'), (need ? '⚠ ' : '✓ ') + esc(bLabel) + (need ? ' · 백업 필요' : ''), function () { S.view = 'table'; render(); });
+  var inst = (IS_IOS && !IS_STANDALONE) ? '<div class="install"><b>설치해서 쓰세요:</b> Safari 공유 버튼(□↑) → <b>홈 화면에 추가</b>. 홈 화면 앱과 Safari는 데이터가 따로 저장되니, 처음부터 홈 화면 아이콘으로만 사용하세요.</div>' : '';
+  var opts = S.projects.map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === S.project ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
+  if (S.project && !projectInfo(S.project)) opts = '<option selected>' + esc(S.project) + '</option>' + opts;
+  return '<header class="top"><label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#CBD5E1">프로젝트<select id="projSel" aria-label="프로젝트">' + (opts || '<option>-</option>') + '</select></label>' +
+    btn('add', '+ 새 프로젝트', openNewProject, ' style="background:transparent;color:#E2E8F0;border-color:#64748B"') +
+    '<span class="net" style="' + bg + '"><i style="background:#0284C7"></i>' + esc(label) + '</span>' + bk +
+    (S.project ? '<nav class="tabs">' + [['input', '실별 입력'], ['score', '동별 점수표'], ['result', '현장심사 결과'], ['table', '데이터 표 · 백업']].map(function (t) {
+      return btn('tab' + (S.view === t[0] ? ' on' : ''), t[1], function () { S.view = t[0]; render(); });
+    }).join('') + '</nav>' : '') + '</header>' + inst;
+}
+function locbar() {
+  var s = S.site;
+  var b = s.bldgList.map(function (x) { return btn('lb' + (x === S.bldg ? ' on' : ''), esc(x), function () { goto(x, S.floor || s.up[0]); }); }).join('');
+  var fb = function (f) { return btn('lb' + (f === S.floor ? ' on' : ''), esc(f), function () { if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }); };
+  var wall = S.bldg ? btn('lb wall' + (S.floor === COMMON ? ' on' : ''), esc(S.bldg) + ' 외벽', function () { goto(S.bldg, COMMON); }) : '';
+  return '<div class="loc" style="align-items:stretch"><div style="display:flex;flex-direction:column;gap:3px"><b class="lbl" style="font-size:12px">지금 위치</b>' +
+    '<div class="row" role="group" aria-label="동">' + b + btn('add', '+ 동 추가', openNewBldg) + (S.bldg ? btn('add delf', '− ' + esc(S.bldg) + ' 삭제', function () { S.confirmDelBldg = S.bldg; S.confirmDelFloor = null; S.confirmDelAll = false; S.confirmDel = false; render(); }) : '') + '</div>' +
+    (wall ? '<div class="row">' + wall + '<span class="note" style="font-size:11px">동 전체 1회 평가</span></div>' : '') + '</div>' +
+    '<span style="width:1px;background:#D1D5DB"></span><div style="display:flex;flex-direction:column;gap:2px;justify-content:center">' +
+    '<div class="row"><span class="fl">지하</span>' + s.down.map(fb).join('') + (S.floor === s.down[s.down.length - 1] ? delFloorBtn() : '') + btn('add', '+ 지하층 추가', function () { var f = 'B' + (s.down.length + 1); s.down.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) + '</div>' +
+    '<div class="row"><span class="fl">지상</span>' + s.up.map(fb).join('') + (s.roof ? fb(ROOF) : '') + ((S.floor === ROOF && s.roof) || (S.floor === s.up[s.up.length - 1] && s.up.length > 1) ? delFloorBtn() : '') + btn('add', '+ 층 추가', function () { var f = (s.up.length + 1) + '층'; s.up.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) +
+      (s.roof ? '' : btn('add', '+ 옥상층 추가', function () { s.roof = true; markSite(); if (S.bldg) goto(S.bldg, ROOF); else { S.floor = ROOF; render(); } })) + '</div></div>' +
+    (S.bldg ? btn('hb blue', '현장심사 결과보기', function () { S.view = 'result'; render(); }, ' style="margin-left:auto;align-self:center"') : '') + '</div>';
+}
+function aside() {
+  var h = here();
+  var list = h.map(function (r) {
+    var n = defsOf(r).filter(function (x) { return !x.rec; }).length;
+    var meta = (r.ocr ? '가명칭 · ' : '') + r.type + (isGeneral(r.type) && r.type !== '계단' ? ' · 문 ' + r.doors.length + '개' : '') + ' · 사진 ' + r.photos.length;
+    return btn('room' + (r.id === S.cur ? ' on' : '') + (S.pick && r.id !== S.pick ? ' pick' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(meta) + '</span></span><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>',
+      function () { if (S.pick) { pickFrom(r); return; } S.cur = r.id; S.door = 0; S.confirmDel = false; render(); });
+  }).join('');
+  return '<aside><div style="display:flex;align-items:center;gap:6px;padding:6px 8px 4px 12px;font-size:13px;font-weight:700;color:#4B5563"><span style="flex:1 1 auto">' + esc(S.floor === COMMON ? S.bldg + ' 외벽 (동 전체)' : S.bldg + ' ' + S.floor + ' 입력한 실') + ' (' + h.length + ')</span>' +
+    (h.length ? btn('hb red sm', '전체실 삭제', function () { S.confirmDelAll = true; S.confirmDel = false; S.pick = null; render(); }) : '') +
+    (cur() ? btn('hb red sm', '실 삭제', function () { S.confirmDel = true; S.confirmDelAll = false; S.pick = null; render(); }) : '') + '</div>' +
+    '<div class="list">' + (list || '<p class="note" style="padding:12px">아직 입력한 실이 없습니다.</p>') + '</div>' +
+    (S.floor === COMMON ? '<div class="adds"><p class="note" style="margin:0">외벽은 동마다 한 번 평가합니다. 사진도 이 화면에서 찍으면 동 외벽으로 저장됩니다.</p></div></aside>' : '<div class="adds"><div class="t">실 추가 · 누르면 이름이 자동으로 붙습니다</div><div class="addgrid"><div class="addmain">' +
+    MAIN_TYPES.map(function (t) { return btn('ab', '<strong>' + t + '</strong><span>' + esc(suggest(t)) + '</span>', function () { addRoom(t); }); }).join('') +
+    '</div><div class="addwc"><span style="font-size:11px;font-weight:700;color:#4B5563">화장실</span>' +
+    WC_TYPES.map(function (t) { return btn('wb', t, function () { addRoom(t); }); }).join('') + '</div></div></div></aside>');
+}
+function mainPanel() {
+  var r = cur();
+  if (!r) return '<main><div class="empty">' + (S.pick ? '← 값을 가져올 실을 왼쪽 목록에서 누르세요' : '왼쪽 목록에서 실을 고르거나, 아래 버튼으로 실을 추가하세요.') + '</div></main>';
+  var gen = isGeneral(r.type);
+  var h = '<main><div class="rh"><div style="display:flex;flex-direction:column;flex:1 1 auto;min-width:0"><span class="meta">' + esc(r.bldg + ' ' + r.floor + ' · ' + (r.ocr ? '실명판 인식 가명칭 · ' : '') + r.type) + '</span>' +
+    '<input id="roomName" aria-label="실 이름" value="' + esc(r.name) + '"></div>' +
+    '<label class="hb dark" style="position:relative;overflow:hidden">' + CAM + '실명 글자인식<input type="file" accept="image/*" capture="environment" data-photo="sign" aria-label="실명 글자인식" style="position:absolute;inset:0;opacity:0"></label>' +
+    btn('hb' + (S.pick === r.id ? ' blue' : ''), S.pick === r.id ? '가져올 실을 고르세요…' : '다른 실 값 가져오기', function () { S.pick = S.pick === r.id ? null : r.id; S.confirmDel = false; render(); }) + btn('hb', '기본값으로', resetRoom) + '</div>';
+  if (S.confirmDel) h += '<div class="confirm" role="alert"><strong>' + esc(r.name) + '</strong><span>을(를) 삭제할까요? 입력 내용과 사진 기록 ' + r.photos.length + '장이 함께 지워집니다.</span>' +
+    btn('hb', '삭제', delRoom, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDel = false; render(); }) + '</div>';
+  h += '<div class="scroll">';
+  if (gen) {
+    h += '<div class="card inline"><div class="grp" role="group" aria-label="영역구분"><b>영역구분</b>' + AREAS.map(function (a) { return btn('c' + (r.area === a ? ' on' : ''), a, function () { upd(function (x) { x.area = a; }); }); }).join('') + '</div>' +
+      '<div class="grp" role="group" aria-label="마감재료"><b>마감재료</b>' + FIN_FORM[0].opts.map(function (o) { var on = r.fin.finish === o, bad = on && o === '기타(확인필요)'; return btn('c' + (bad ? ' bad' : on ? ' on' : ''), o, function () { upd(function (x) { x.fin.finish = o; }); }); }).join('') + '</div></div>';
+    if (r.type === '계단') h += stairCard(r);
+    if (r.type !== '계단') {
+      var di = Math.max(0, Math.min(S.door, r.doors.length - 1)), d = r.doors[di];
+      h += '<section class="card"><div class="row" style="margin-bottom:2px"><h3 style="margin:0 6px 0 0">출입문 <small>' + r.doors.length + '개 · 문마다 따로 입력</small></h3>' +
+        r.doors.map(function (dd, i) { var gg = glassGrade(dd), n = doorIssues(dd).length + (gg && gg !== 'S' ? 1 : 0);
+          return btn('dt' + (i === di ? ' on' : ''), '문' + (i + 1) + ' ' + esc(dd.shape) + '<span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>', function () { S.door = i; render(); }); }).join('') +
+        btn('add', '+ 추가', function () { upd(function (x) { x.doors.push(newDoor()); S.door = x.doors.length - 1; }); }) +
+        (d ? btn('add', '복사', function () { upd(function (x) { x.doors.push(clone(x.doors[di])); S.door = x.doors.length - 1; }); }, ' style="border-style:solid"') : '') +
+        (r.doors.length > 1 ? btn('add', '삭제', function () { upd(function (x) { x.doors.splice(di, 1); S.door = Math.max(0, di - 1); }); }, ' style="border:0;color:#B91C1C;background:transparent"') : '') + '</div>' +
+        (d ? '<div class="grid2">' + chips(DOOR_FORM, d, function (k, v) { upd(function (x) { x.doors[di][k] = v; if (k === 'shape' && v === '자동문') x.doors[di].pinch = '속도제어'; }); }) + doorBumpGroup(d, di) + '</div>' : '<p class="note">문이 없습니다. + 추가를 누르세요.</p>') + '</section>';
+    }
+    var ws = winState(r.win);
+    h += '<section class="card"><h3>추락방지조치 <span class="badge b-' + ws + '">' + { na: '해당없음', good: '양호', bad: '미흡' }[ws] + '</span></h3><div class="grid2">' +
+      chips(WIN_FORM, r.win, function (k, v) { upd(function (x) { x.win[k] = v; }); }) + '</div></section>';
+    if (r.type === '복도') h += '<section class="card"><h3>복도 <small>복도에만 추가되는 항목</small></h3><div class="grid2">' + chips(COR_FORM, r.cor, function (k, v) { upd(function (x) { x.cor[k] = v; }); }) + corEdgeGroup(r) + '</div></section>';
+    if (r.type === '도서관') { if (!r.lib) r.lib = newLib(); h += '<section class="card"><h3>도서관 <small>도서관에만 추가되는 항목</small></h3><div class="wcgrid">' + chips(LIB_FORM, r.lib, function (k, v) { upd(function (x) { x.lib[k] = v; }); }) + '</div></section>'; }
+    if (isWc(r.type)) { if (!r.wc) r.wc = newWc(); if (r.wc.card == null) r.wc.card = '비치'; if (r.wc.card === '미비치') r.wc.card = '없음'; h += '<section class="card"><h3>화장실 <small>화장실에만 추가되는 항목' + (isDisWc(r.type) ? ' · <b style="color:#9A3412">장애인화장실은 응급통신시설 배점 미반영</b>' : '') + '</small></h3><div class="wcgrid">' + chips(isDisWc(r.type) ? WC_FORM.map(function (f) { return f.key === 'card' ? f : Object.assign({}, f, { bad: [] }); }) : WC_FORM, r.wc, function (k, v) { upd(function (x) { x.wc[k] = v; }); }) + '</div></section>'; }
+    if (r.type === '체육관') { if (!r.gym) r.gym = newGym(); h += '<section class="card"><h3>체육관 <small>체육관에만 추가되는 항목</small></h3><div class="grid2">' + chips(GYM_FORM, r.gym, function (k, v) { upd(function (x) { x.gym[k] = v; }); }) + '</div></section>'; }
+  } else {
+    if (r.type === '외벽') { var wl = wallLen(r);
+      var inp = function (k, label) { return '<label class="wl"><span>' + label + '</span><input type="number" inputmode="decimal" min="0" step="any" data-wl="' + k + '" value="' + esc(wl[k]) + '"><i>m</i></label>'; };
+      h += '<section class="card"><h3>외벽 마감재료 <small>길이로 입력 · 점수표 B-2-3 실외재료에 반영</small></h3><div class="row" style="gap:14px;padding:4px 0">' +
+        inp('total', '외벽 전체 길이') + inp('a', '불연재료 적용 길이') + inp('b', '준불연재료 적용 길이') +
+        '<span class="note">' + (wl.a + wl.b > wl.total ? '<b style="color:#B91C1C">불연+준불연이 전체보다 깁니다</b>' : '기타(미확인) ' + Math.round((wl.total - wl.a - wl.b) * 100) / 100 + 'm') + '</span></div></section>'; }
+    if (isRoofLike(r.type)) { rooftop(r); h += '<section class="card"><h3>' + esc(r.type) + ' <small>점수표 B-1-1 (공용영역) 공간추락방지 난간</small></h3><div class="wcgrid">' + chips(ROOFTOP_FORM, r.top, function (k, v) { upd(function (x) { rooftop(x)[k] = v; }); }) + '</div></section>'; }
+    if (SIMPLE[r.type].length) h += '<section class="card"><h3>점검항목 <small>임시 점검표 · 항목 확정 전</small></h3>' + SIMPLE[r.type].map(function (k) { var ng = r.res[k] === 'ng';
+      return '<div class="g"><span class="l" style="flex-basis:160px">' + esc(k) + '</span><div class="optrow">' + btn('c' + (!ng ? ' on' : ''), '양호', function () { upd(function (x) { x.res[k] = 'ok'; }); }) + btn('c' + (ng ? ' bad' : ''), '미흡', function () { upd(function (x) { x.res[k] = 'ng'; }); }) + '</div></div>'; }).join('') + '</section>';
+  }
+  if (gen && openShown(r)) { openOf(r); h += '<section class="card"><div class="wcgrid">' + chips(OPEN_FORM, r.open, function (k, v) { upd(function (x) { openOf(x)[k] = v; }); }) + '</div></section>'; }
+  var defs = defsOf(r);
+  var nDef = defs.filter(function (x) { return !x.rec; }).length;
+  if (r.type !== '외벽') h += '<section class="card defs"><h3>미흡 항목 <small>' + nDef + '건' + (defs.length > nDef ? ' · 권고 ' + (defs.length - nDef) + '건' : '') + '</small></h3>' + (defs.length ? '<ul>' + defs.map(function (x, i) {
+    return '<li><b>' + (i && defs[i - 1].where === x.where ? '' : esc(x.where)) + '</b><span>' + esc(x.what) + '</span></li>'; }).join('') + '</ul>' : '<p class="note" style="margin:0;color:#166534">미흡한 항목이 없습니다.</p>') + '</section>';
+  h += '</div>';
+  var hh = here(), idx = hh.indexOf(r), nx = hh[idx + 1];
+  var thumbs = r.photos.slice(-4).map(function (p) { var src = localUrls[p.key]; return btn('th', src ? '<img class="th" alt="' + esc(p.name) + '" src="' + esc(src) + '">' : '', function () { openPhoto(r, p); }, ' style="padding:0;border:0"'); }).join('');
+  var nRoom = r.photos.filter(function (p) { return !p.sign; }).length;
+  h += '<div class="bar"><label class="shoot">' + CAM + '<span style="display:flex;flex-direction:column;line-height:1.2">사진 촬영<span style="font-size:11px;font-weight:400;color:#DBEAFE">' + esc(photoFileName(r, nRoom + 1, false)) + '</span></span>' +
+    '<input type="file" accept="image/*" capture="environment" data-photo="room" aria-label="사진 촬영"></label>' + thumbs + '<span class="note">' + r.photos.length + '장</span>' +
+    (r.floor === COMMON ? '' : btn('next', '<strong>다음 실 ›</strong><span>' + esc(nx ? nx.name : '새 ' + r.type + ': ' + suggest(r.type)) + '</span>', function () { if (nx) { S.cur = nx.id; S.door = 0; render(); } else addRoom(r.type); })) + '</div></main>';
+  return h;
+}
+function stairCard(r) {
+  var s = r.stair, sc = S.site.school || '중·고등학교';
+  var h = '<section class="card"><div class="row"><h3 style="margin:0">계단 <small>출입문은 평가하지 않음</small></h3><span style="margin-left:auto;font-size:11px;color:#4B5563">단높이 기준</span>' +
+    ['초등학교', '중·고등학교'].map(function (x) { return btn('c' + (sc === x ? ' on' : ''), x, function () { S.site.school = x; markSite(); render(); }); }).join('') + '</div><div class="grid2">';
+  STAIR_FORM.forEach(function (g) {
+    h += '<div class="g"><span class="l"' + (g.compact ? ' style="flex-basis:36px"' : '') + '>' + esc(g.label) + (g.sub ? '<small>' + esc(g.sub(sc)) + '</small>' : '') + '</span><div class="opts">' +
+      g.rows.filter(function (w) { return !w.when || w.when(s); }).map(function (w) {
+        return '<div class="optrow">' + (w.name ? '<em' + (g.compact ? ' style="width:48px"' : '') + '>' + esc(w.name) + '</em>' : '') + w.opts.map(function (o) { var on = s[w.key] === o, bad = on && w.bad.indexOf(o) >= 0;
+          return btn('c' + (bad ? ' bad' : on ? ' on' : ''), esc(o), function () { upd(function (x) { x.stair[w.key] = o; }); }); }).join('') + '</div>';
+      }).join('') + '</div></div>';
+  });
+  return h + '</div></section>';
+}
+function pickBar() {
+  var t = S.pick && S.rooms[S.pick]; if (!t) { S.pick = null; return ''; }
+  var away = t.bldg !== S.bldg || t.floor !== S.floor;
+  return '<div class="pickbar" role="status"><span><b>' + esc(t.bldg + ' ' + t.floor + ' ' + t.name) + '</b>에 가져올 실을 <b>왼쪽 목록에서 누르세요</b> · 위에서 다른 동·층으로 옮겨 골라도 됩니다</span>' +
+    (away ? btn('hb', '← ' + esc(t.name) + '(으)로 돌아가기', function () { backTo(t); }) : '') + btn('hb', '취소', function () { S.pick = null; backTo(t); }) + '</div>';
+}
+function delBldgBar() {
+  var b = S.confirmDelBldg; if (!b) return '';
+  var rs = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (r) { return r.bldg === b; }), np = 0;
+  rs.forEach(function (r) { np += r.photos.length; });
+  return '<div class="confirm" role="alert"><span><strong>' + esc(b) + '</strong>을(를) 삭제할까요? 이 동의 모든 층 실 <strong>' + rs.length + '개</strong>(외벽 포함)와 사진 <strong>' + np + '장</strong>이 함께 지워집니다. 되돌릴 수 없습니다.</span>' +
+    btn('hb', '동 삭제', function () { delBldg(b); }, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDelBldg = null; render(); }) + '</div>';
+}
+function delBldg(b) {
+  var n = 0;
+  Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.bldg !== b) return; r.photos.forEach(function (p) { if (p.key) idbDel(p.key); }); delete S.rooms[id]; n++; });
+  S.site.bldgList = S.site.bldgList.filter(function (x) { return x !== b; });
+  S.confirmDelBldg = null; touchData(); markSite();
+  toast(b + ' 삭제됨' + (n ? ' · 실 ' + n + '개 함께 삭제' : ''));
+  var nx = S.site.bldgList[0];
+  if (nx) goto(nx, S.floor === COMMON ? (S.site.up[0] || '1층') : S.floor); else { S.bldg = null; S.cur = null; saveLocal(); render(); }
+}
+function delFloorBtn() { return btn('add delf', '− ' + esc(S.floor) + ' 삭제', function () { S.confirmDelFloor = S.floor; S.confirmDelAll = false; S.confirmDel = false; render(); }); }
+function delFloorBar() {
+  var f = S.confirmDelFloor; if (!f) return '';
+  var rs = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (r) { return r.floor === f; }), np = 0;
+  rs.forEach(function (r) { np += r.photos.length; });
+  return '<div class="confirm" role="alert"><span><strong>' + esc(f) + '</strong>을(를) 삭제할까요? 층은 모든 동이 함께 쓰므로 <strong>모든 동의 ' + esc(f) + '</strong> 실 ' + rs.length + '개와 사진 ' + np + '장이 함께 지워집니다. 되돌릴 수 없습니다.</span>' +
+    btn('hb', '층 삭제', function () { delFloor(f); }, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDelFloor = null; render(); }) + '</div>';
+}
+function delFloor(f) {
+  var s = S.site, n = 0;
+  Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.floor !== f) return; r.photos.forEach(function (p) { if (p.key) idbDel(p.key); }); delete S.rooms[id]; n++; });
+  if (f === ROOF) s.roof = false;
+  else if (s.up[s.up.length - 1] === f) s.up.pop();
+  else if (s.down[s.down.length - 1] === f) s.down.pop();
+  S.confirmDelFloor = null; touchData(); markSite();
+  toast(f + ' 삭제됨' + (n ? ' · 실 ' + n + '개 함께 삭제' : ''));
+  goto(S.bldg, s.up[s.up.length - 1] || '1층');
+}
+function delAllBar() {
+  if (!S.confirmDelAll) return '';
+  var h = here(), np = 0; h.forEach(function (r) { np += r.photos.length; });
+  return '<div class="confirm" role="alert"><span><strong>' + esc(S.bldg + ' ' + S.floor) + '</strong>의 실 <strong>' + h.length + '개</strong>와 사진 <strong>' + np + '장</strong>을 모두 삭제할까요? 되돌릴 수 없습니다.</span>' +
+    btn('hb', '모두 삭제', delAllRooms, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDelAll = false; render(); }) + '</div>';
+}
+function delAllRooms() {
+  var h = here();
+  h.forEach(function (r) { r.photos.forEach(function (p) { if (p.key) idbDel(p.key); }); delete S.rooms[r.id]; });
+  S.confirmDelAll = false; S.cur = null; touchData(); ensureAuto(); saveLocal();
+  toast(S.bldg + ' ' + S.floor + '의 실 ' + h.length + '개를 삭제했습니다'); render();
+}
+function backTo(t) { S.bldg = t.bldg; S.floor = t.floor; S.cur = t.id; S.door = 0; saveLocal(); render(); }
+function pickFrom(src) {
+  var t = S.rooms[S.pick]; S.pick = null;
+  if (!t) { render(); return; }
+  if (src.id === t.id) { backTo(t); return; }
+  if (isGeneral(src.type) !== isGeneral(t.type)) { toast(src.name + '은(는) 점검표 종류가 달라 가져올 수 없습니다'); backTo(t); return; }
+  if (isGeneral(t.type)) {
+    t.area = src.area; t.fin = clone(src.fin);
+    var ground = t.win.ground; t.win = clone(src.win); if (src.floor !== t.floor) t.win.ground = ground; // 지상층 여부는 이 실의 층 기준 유지
+    if (t.type !== '계단' && src.type !== '계단') t.doors = clone(src.doors.length ? src.doors : [newDoor()]);
+    if (t.type === src.type) { t.cor = clone(src.cor); t.stair = clone(src.stair); if (src.gym) t.gym = clone(src.gym); }
+    if (t.type === '도서관' && src.type === '도서관' && src.lib) t.lib = clone(src.lib);
+    if (isWc(t.type) && isWc(src.type) && src.wc) t.wc = clone(src.wc);
+  } else { for (var k in t.res) if (src.res && src.res[k]) t.res[k] = src.res[k]; }
+  markDirty(t.id); toast(src.bldg + ' ' + src.floor + ' ' + src.name + '의 입력값을 가져왔습니다'); backTo(t);
+}
+function resetRoom() { upd(function (x) { var n = makeRoom(x.bldg, x.floor, x.name, x.type, x.order); ['area', 'doors', 'win', 'fin', 'cor', 'stair', 'gym', 'wc', 'lib', 'res'].forEach(function (k) { x[k] = n[k]; }); }); }
+function delRoom() {
+  var r = cur(), hh = here(), i = hh.indexOf(r), go = hh[i - 1] || hh[i + 1];
+  r.photos.forEach(function (p) { if (p.key) idbDel(p.key); }); delete S.rooms[r.id]; S.cur = go ? go.id : null; S.confirmDel = false; touchData(); saveLocal(); toast(r.name + ' 삭제됨'); render();
+}
+// ───────────── 사진 · 실명판 ─────────────
+function photoFileName(r, n, sign) {
+  return safe((sign ? '실명판_' : '') + r.bldg + '_' + (r.floor === COMMON ? '' : r.floor + '_') + r.name + '_' + String(n).padStart(3, '0') + '.jpg');
+}
+// 사진을 기기 저장소(IndexedDB)에 넣음. iOS에서 안전하도록 파일 내용을 읽어 새 Blob으로 저장
+function savePhotos(r, files, sign) {
+  var keys = [];
+  var jobs = files.map(function (f, i) {
+    var key = 'p' + Date.now().toString(36) + i + Math.random().toString(36).slice(2, 5);
+    var n = r.photos.filter(function (p) { return !!p.sign === !!sign; }).length + 1;
+    var name = photoFileName(r, n, sign);
+    r.photos.push(sign ? { key: key, name: name, sign: true } : { key: key, name: name });
+    keys.push(key);
+    return f.arrayBuffer().then(function (buf) {
+      var blob = new Blob([buf], { type: f.type || 'image/jpeg' });
+      try { localUrls[key] = URL.createObjectURL(blob); } catch (e) {}
+      return idbPut({ key: key, project: S.project, roomId: r.id, name: name, sign: !!sign, blob: blob });
+    });
+  });
+  markDirty(r.id); render();
+  return Promise.all(jobs).then(function (ok) {
+    if (ok.indexOf(false) >= 0) toast('⚠ 사진 저장 실패 · 저장공간을 확인하고 지금 백업하세요');
+    render(); return keys;
+  });
+}
+function onPhotos(input) {
+  var r = cur(); if (!r || !input.files || !input.files.length) return;
+  var files = Array.prototype.slice.call(input.files);
+  input.value = '';
+  if (input.getAttribute('data-photo') === 'sign') { savePhotos(r, files.slice(0, 1), true).then(function (keys) { openSign(r, keys[0]); }); return; }
+  savePhotos(r, files, false).then(function () { toast('저장: ' + r.photos[r.photos.length - 1].name); });
+}
+function openSign(r, key) {
+  var m = document.getElementById('modal');
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="실명 글자인식"><form class="box wide" id="sf">' +
+    '<h3 style="margin:0 0 6px;font-size:16px">실명 글자인식 <small style="font-weight:400;color:#4B5563">· 지금 이름: ' + esc(r.name) + '</small></h3>' +
+    '<div id="simg">' + (key && localUrls[key] ? '<img class="sign-img" alt="실명판 사진" src="' + esc(localUrls[key]) + '">' : '') + '</div>' +
+    '<p class="note" style="margin:0 0 4px">사진 속 글자를 <b>길게 눌러 복사</b>한 뒤 아래 칸에 붙여 넣으세요. 또는 입력칸을 탭해서 나오는 <b>텍스트 스캔</b>으로 바로 읽어도 됩니다. 찍은 사진은 이 실에 저장됩니다.</p>' +
+    '<input id="si" placeholder="실명 (예: 과학실)" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="done">' +
+    '<div class="row" style="justify-content:space-between"><label class="hb" style="position:relative;overflow:hidden">' + CAM + '다시 찍기<input type="file" accept="image/*" capture="environment" id="sfile" style="position:absolute;inset:0;opacity:0"></label>' +
+    '<span class="row"><button type="button" class="hb" id="sc">취소</button><button type="submit" class="hb blue">이 이름으로 바꾸기</button></span></div></form></div>';
+  var i = document.getElementById('si'); if (!key) i.focus();
+  document.getElementById('sc').onclick = function () { m.innerHTML = ''; };
+  document.getElementById('sfile').onchange = function (e) {
+    var fs = Array.prototype.slice.call(e.target.files || []); if (!fs.length) return;
+    savePhotos(r, fs, true).then(function (keys) {
+      var u = localUrls[keys[0]];
+      document.getElementById('simg').innerHTML = u ? '<img class="sign-img" alt="실명판 사진" src="' + esc(u) + '">' : '';
+      toast('실명판 사진 저장');
+    });
+  };
+  document.getElementById('sf').onsubmit = function (e) {
+    e.preventDefault();
+    var v = i.value.replace(/\s+/g, ' ').trim();
+    m.innerHTML = '';
+    if (!v || v === r.name) return;
+    var old = r.name; r.name = v; r.ocr = true; markDirty(r.id); render();
+    toast(old + ' → "' + v + '" (가명칭)');
+  };
+}
+function openPhoto(r, p) {
+  var m = document.getElementById('modal'), u = localUrls[p.key];
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="사진 보기"><div class="box wide">' +
+    '<h3 style="margin:0 0 6px;font-size:14px;word-break:break-all">' + esc(p.name) + '</h3>' +
+    (u ? '<img class="sign-img" style="max-height:70vh" alt="" src="' + esc(u) + '">' : '<p class="note">사진을 불러올 수 없습니다.</p>') +
+    '<div class="row" style="justify-content:space-between"><button type="button" class="hb red" id="pd">이 사진 삭제</button><button type="button" class="hb dark" id="pc">닫기</button></div></div></div>';
+  document.getElementById('pc').onclick = function () { m.innerHTML = ''; };
+  document.getElementById('pd').onclick = function () {
+    if (this.dataset.sure !== '1') { this.dataset.sure = '1'; this.textContent = '한 번 더 누르면 삭제'; return; }
+    r.photos = r.photos.filter(function (x) { return x.key !== p.key; });
+    idbDel(p.key); markDirty(r.id); m.innerHTML = ''; render(); toast('사진을 삭제했습니다');
+  };
+}
+
+// ───────────── ZIP (무압축, 외부 라이브러리 없음) ─────────────
+var CRC_T = (function () { var t = new Uint32Array(256); for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { var c = 0xFFFFFFFF; for (var i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(entries, onProg) {
+  var enc = new TextEncoder(), parts = [], cen = [], off = 0, i = 0, d = new Date();
+  var dt = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), dd = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  function next() {
+    if (i >= entries.length) return Promise.resolve(finish());
+    var e = entries[i++];
+    var p = e.text != null ? Promise.resolve(enc.encode(e.text)) : e.blob.arrayBuffer().then(function (b) { return new Uint8Array(b); });
+    return p.then(function (data) {
+      var nm = enc.encode(e.name), crc = crc32(data), size = data.length;
+      var lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+      lh.setUint16(10, dt, true); lh.setUint16(12, dd, true); lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true); lh.setUint16(26, nm.length, true);
+      parts.push(lh.buffer, nm, e.text != null ? data : e.blob);
+      var ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+      ch.setUint16(12, dt, true); ch.setUint16(14, dd, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+      cen.push(ch.buffer, nm);
+      off += 30 + nm.length + size;
+      if (onProg) onProg(i, entries.length);
+      return next();
+    });
+  }
+  function finish() {
+    var cs = 0; cen.forEach(function (c) { cs += c.byteLength; });
+    var end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, cs, true); end.setUint32(16, off, true);
+    return new Blob(parts.concat(cen, [end.buffer]), { type: 'application/zip' });
+  }
+  return next();
+}
+function readZip(file) {
+  return file.slice(Math.max(0, file.size - 65557)).arrayBuffer().then(function (buf) {
+    var v = new DataView(buf), p = -1;
+    for (var i = buf.byteLength - 22; i >= 0; i--) if (v.getUint32(i, true) === 0x06054b50) { p = i; break; }
+    if (p < 0) throw new Error('ZIP 파일이 아닙니다');
+    var n = v.getUint16(p + 10, true), cs = v.getUint32(p + 12, true), co = v.getUint32(p + 16, true);
+    return file.slice(co, co + cs).arrayBuffer().then(function (cb) {
+      var c = new DataView(cb), dec = new TextDecoder(), q = 0, list = [];
+      for (var k = 0; k < n; k++) {
+        if (c.getUint32(q, true) !== 0x02014b50) break;
+        var nl = c.getUint16(q + 28, true), el = c.getUint16(q + 30, true), cl = c.getUint16(q + 32, true);
+        list.push({ name: dec.decode(new Uint8Array(cb, q + 46, nl)), method: c.getUint16(q + 10, true), size: c.getUint32(q + 20, true), lo: c.getUint32(q + 42, true) });
+        q += 46 + nl + el + cl;
+      }
+      return Promise.all(list.map(function (e) {
+        return file.slice(e.lo, e.lo + 30).arrayBuffer().then(function (h) {
+          var hv = new DataView(h), st = e.lo + 30 + hv.getUint16(26, true) + hv.getUint16(28, true);
+          e.blob = file.slice(st, st + e.size); return e;
+        });
+      }));
+    });
+  });
+}
+
+// ───────────── 내보내기 공통: 준비 → 공유(파일에 저장) ─────────────
+var PART_LIMIT = 500 * 1024 * 1024; // ZIP 하나당 최대 약 500MB, 넘으면 나눠 저장
+function mb(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB'; }
+function shortTime(iso) { var d = new Date(iso), t = new Date(); var hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); return d.toDateString() === t.toDateString() ? '오늘 ' + hm : (d.getMonth() + 1) + '/' + d.getDate() + ' ' + hm; }
+function canShareFiles(files) { try { return !!(navigator.canShare && navigator.canShare({ files: files })); } catch (e) { return false; } }
+function exportModal(title, build) {
+  var m = document.getElementById('modal'), urls = [];
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="' + esc(title) + '"><div class="box wide"><h3 style="margin:0 0 6px;font-size:16px">' + esc(title) + '</h3>' +
+    '<p class="note" id="xs" style="margin:0">준비 중… 화면을 끄지 마세요</p><div class="prog"><i id="xp"></i></div><div id="xo"></div>' +
+    '<div class="row" style="justify-content:flex-end"><button type="button" class="hb" id="xc">닫기</button></div></div></div>';
+  var xs = document.getElementById('xs'), xp = document.getElementById('xp'), xo = document.getElementById('xo');
+  document.getElementById('xc').onclick = function () { m.innerHTML = ''; setTimeout(function () { urls.forEach(function (u) { URL.revokeObjectURL(u); }); }, 60000); };
+  build(function (a, b, msg) { xp.style.width = (b ? Math.round(a / b * 100) : 0) + '%'; xs.textContent = (msg || '준비 중') + ' · ' + a + ' / ' + b; }).then(function (res) {
+    var files = res.files, tot = 0; files.forEach(function (f) { tot += f.size; });
+    xp.style.width = '100%';
+    if (!files.length) { xs.innerHTML = '<b>완료</b> · ' + esc(res.msg || ''); return; }
+    xs.innerHTML = '<b>준비 완료</b> · 파일 ' + files.length + '개 · ' + mb(tot) + (res.msg ? ' · ' + esc(res.msg) : '');
+    var h = '<div class="dl">';
+    if (canShareFiles(files)) h += '<button type="button" class="hb blue" id="xsh">공유 → "파일에 저장" (권장)</button>';
+    files.forEach(function (f, i) { var u = URL.createObjectURL(f); urls.push(u); h += '<a class="hb" data-dl="' + i + '" href="' + u + '" download="' + esc(f.name) + '">↓ ' + esc(f.name) + ' (' + mb(f.size) + ')</a>'; });
+    h += '</div><p class="note" style="margin:0 0 6px">공유 화면에서 <b>파일에 저장</b>을 누르고 <b>나의 iPad</b> 안의 폴더(예: 현장심사)를 골라 저장하세요. 이 앱을 지워도 그 파일은 남습니다.</p>';
+    xo.innerHTML = h;
+    var sh = document.getElementById('xsh');
+    if (sh) sh.onclick = function () {
+      navigator.share({ files: files, title: title }).then(function () { if (res.after) res.after(); toast('저장했습니다'); render(); })
+        .catch(function (e) { if (!e || e.name !== 'AbortError') toast('공유가 안 되면 아래 ↓ 버튼으로 저장하세요'); });
+    };
+    Array.prototype.forEach.call(xo.querySelectorAll('[data-dl]'), function (a) { a.addEventListener('click', function () { if (res.after) res.after(); setTimeout(render, 500); }); });
+  }).catch(function (e) { xs.textContent = '실패: ' + ((e && e.message) || e); });
+}
+// 사진 항목 목록: 지금 실 이름 기준 파일명, 같은 이름은 (2) 붙여 절대 덮어쓰지 않음
+function photoEntries(projectId, rooms, recs, prefix) {
+  var byKey = {}; recs.forEach(function (p) { byKey[p.key] = p; });
+  var used = {}, out = [];
+  Object.keys(rooms).map(function (k) { return rooms[k]; }).sort(function (a, b) { return a.bldg === b.bldg ? (floorNum(a.floor) - floorNum(b.floor) || a.order - b.order) : (a.bldg < b.bldg ? -1 : 1); })
+    .forEach(function (r) {
+      var nR = 0, nS = 0;
+      (r.photos || []).forEach(function (ph) {
+        var rec = byKey[ph.key]; if (!rec || !rec.blob) return;
+        var n = ph.sign ? ++nS : ++nR;
+        var path = prefix + safe(r.bldg) + '/' + safe(r.floor === COMMON ? '외벽' : r.floor) + '/' + photoFileName(r, n, ph.sign);
+        if (used[path]) { var j = 2, base = path.replace(/\.jpg$/, ''); while (used[base + ' (' + j + ').jpg']) j++; path = base + ' (' + j + ').jpg'; }
+        used[path] = 1;
+        out.push({ name: path, blob: rec.blob, rec: { key: rec.key, project: projectId, roomId: r.id, name: rec.name, sign: !!ph.sign } });
+      });
+    });
+  return out;
+}
+function splitParts(entries) {
+  var parts = [[]], size = 0;
+  entries.forEach(function (e) { if (size + e.blob.size > PART_LIMIT && parts[parts.length - 1].length) { parts.push([]); size = 0; } parts[parts.length - 1].push(e); size += e.blob.size; });
+  return parts;
+}
+function zipParts(parts, baseName, extra, prog, msg) {
+  var files = [], done = 0, total = 0; parts.forEach(function (p) { total += p.length; });
+  var chain = Promise.resolve();
+  parts.forEach(function (p, i) {
+    chain = chain.then(function () {
+      var ents = (extra ? extra(p, i) : []).concat(p.map(function (e) { return { name: e.name, blob: e.blob }; }));
+      var base = done;
+      return makeZip(ents, function (a) { prog(Math.min(total, base + Math.max(0, a - (ents.length - p.length))), total, msg); }).then(function (blob) {
+        done += p.length;
+        files.push(new File([blob], baseName + (parts.length > 1 ? '_' + (i + 1) + 'of' + parts.length : '') + '.zip', { type: 'application/zip' }));
+      });
+    });
+  });
+  return chain.then(function () { return files; });
+}
+function exportCsv() {
+  var q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
+  var lines = [['동', '층', '실명', '가명칭', '종류', '영역', '문 개수', '사진 수', '미흡 수', '미흡 내용', '최종수정'].map(q).join(',')];
+  allRooms().forEach(function (r) { var d = defsOf(r); lines.push([r.bldg, r.floor, r.name, r.ocr ? 'Y' : '', r.type, isGeneral(r.type) ? r.area : '', r.doors.length, r.photos.length, nd(d), d.map(function (x) { return x.where + ' · ' + x.what; }).join(' / '), localTime(r.updatedAt)].map(q).join(',')); });
+  var pn = (projectInfo(S.project) || {}).name || S.project;
+  var f = new File(['﻿' + lines.join('\r\n')], safe('현장심사_' + pn + '_' + stamp() + '.csv'), { type: 'text/csv' });
+  exportModal('CSV 내보내기', function () { return Promise.resolve({ files: [f] }); });
+}
+function exportPhotos() {
+  var pn = (projectInfo(S.project) || {}).name || S.project;
+  exportModal('사진 내보내기 · ' + pn, function (prog) {
+    return idbAll().then(function (list) {
+      var ents = photoEntries(S.project, S.rooms, list.filter(function (p) { return p.project === S.project; }), safe(pn) + '/');
+      if (!ents.length) throw new Error('내보낼 사진이 없습니다');
+      return zipParts(splitParts(ents), safe('현장심사_사진_' + pn + '_' + stamp()), null, prog, '사진 묶는 중');
+    }).then(function (files) { return { files: files, msg: '동/층 폴더별로 정리됨' }; });
+  });
+}
+function exportBackup() {
+  saveLocal();
+  exportModal('전체 백업 (데이터 + 사진)', function (prog) {
+    var data = { app: 'roomcheck', version: 2, savedAt: new Date().toISOString(), projects: S.projects, data: {} };
+    S.projects.forEach(function (p) { data.data[p.id] = p.id === S.project ? { site: S.site, rooms: S.rooms } : (lsGet('rc:p:' + p.id) || {}); });
+    var json = JSON.stringify(data);
+    return idbAll().then(function (list) {
+      var ents = [];
+      S.projects.forEach(function (p) {
+        var d = data.data[p.id] || {};
+        ents = ents.concat(photoEntries(p.id, d.rooms || {}, list.filter(function (x) { return x.project === p.id; }), '사진/' + safe(p.name || p.id) + '/'));
+      });
+      var parts = ents.length ? splitParts(ents) : [[]];
+      var extra = function (p) { return [{ name: 'backup.json', text: json }, { name: 'photos.json', text: JSON.stringify(p.map(function (e) { return { path: e.name, rec: e.rec }; })) }]; };
+      return zipParts(parts, '현장심사_백업_' + stamp(), extra, prog, '백업 만드는 중').then(function (files) {
+        return { files: files, msg: '사진 ' + ents.length + '장 포함', after: function () { lsSet('rc:backupAt', new Date().toISOString()); } };
+      });
+    });
+  });
+}
+// 백업 불러오기: 새 백업(.zip, 여러 개 한 번에 가능)과 예전 백업(.json) 모두
+function mergeBackup(b) {
+  if (!b || b.app !== 'roomcheck') throw new Error('이 앱의 백업 파일이 아닙니다');
+  var n = 0;
+  (b.projects || []).forEach(function (p) {
+    if (!projectInfo(p.id)) S.projects.push(p);
+    var cur = p.id === S.project ? { site: S.site, rooms: S.rooms } : (lsGet('rc:p:' + p.id) || { rooms: {} });
+    var inc = (b.data || {})[p.id] || {}; cur.rooms = cur.rooms || {};
+    Object.keys(inc.rooms || {}).forEach(function (id) {
+      var a = cur.rooms[id], x = inc.rooms[id];
+      if (!a || (x.updatedAt || '') > (a.updatedAt || '')) {
+        if (a) (a.photos || []).forEach(function (ph) { if (!x.photos.some(function (y) { return y.key === ph.key; })) x.photos.push(ph); });
+        cur.rooms[id] = x; n++;
+      }
+    });
+    if (!cur.site && inc.site) cur.site = inc.site;
+    else if (cur.site && inc.site) { if (inc.site.roof) cur.site.roof = true; }
+    if (cur.site && inc.site) inc.site.bldgList.forEach(function (x) { if (cur.site.bldgList.indexOf(x) < 0) cur.site.bldgList.push(x); });
+    if (p.id === S.project) { S.rooms = cur.rooms; S.site = cur.site; } else lsSet('rc:p:' + p.id, cur);
+  });
+  lsSet('rc:projects', S.projects); saveLocal();
+  return n;
+}
+function importBackup(input) {
+  var files = Array.prototype.slice.call(input.files || []); if (!files.length) return;
+  exportModal('백업 불러오기', function (prog) {
+    var rooms = 0, photos = 0, chain = Promise.resolve();
+    files.forEach(function (f) {
+      chain = chain.then(function () {
+        if (/\.json$/i.test(f.name)) return f.text().then(function (t) { rooms += mergeBackup(JSON.parse(t)); });
+        return readZip(f).then(function (list) {
+          var get = function (nm) { for (var i = 0; i < list.length; i++) if (list[i].name === nm) return list[i]; return null; };
+          var bj = get('backup.json'); if (!bj) throw new Error(f.name + ': 백업 파일이 아닙니다');
+          return bj.blob.text().then(function (t) {
+            rooms += mergeBackup(JSON.parse(t));
+            var pj = get('photos.json'); return pj ? pj.blob.text().then(JSON.parse) : [];
+          }).then(function (recs) {
+            var c2 = Promise.resolve(), k = 0;
+            recs.forEach(function (x) {
+              c2 = c2.then(function () {
+                k++; prog(k, recs.length, f.name + ' 사진 복원');
+                if (localUrls[x.rec.key]) return;
+                var e = get(x.path); if (!e) return;
+                return e.blob.arrayBuffer().then(function (buf) {
+                  var blob = new Blob([buf], { type: 'image/jpeg' }), rec = x.rec;
+                  rec.blob = blob; localUrls[rec.key] = URL.createObjectURL(blob); photos++;
+                  return idbPut(rec);
+                });
+              });
+            });
+            return c2;
+          });
+        });
+      });
+    });
+    return chain.then(function () { render(); return { files: [], msg: '실 ' + rooms + '개 · 사진 ' + photos + '장 반영' }; });
+  });
+}
+// 데이터 표
+function allRooms() { return Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).sort(function (a, b) { return a.bldg === b.bldg ? (floorNum(a.floor) - floorNum(b.floor) || a.order - b.order) : (a.bldg < b.bldg ? -1 : 1); }); }
+function tablePage() {
+  var rows = allRooms();
+  var tr = rows.map(function (r) { var d = defsOf(r);
+    return '<tr><td>' + esc(r.bldg) + '</td><td>' + esc(r.floor) + '</td><td><b>' + esc(r.name) + '</b>' + (r.ocr ? ' <span class="note">(가명칭)</span>' : '') + '</td><td>' + esc(r.type) + '</td><td>' + esc(isGeneral(r.type) ? r.area : '-') + '</td><td style="text-align:center">' + (isGeneral(r.type) && r.type !== '계단' ? r.doors.length : '-') +
+      '</td><td style="text-align:center">' + r.photos.length + '</td><td style="text-align:center;font-weight:700;color:' + (nd(d) ? '#9A3412' : '#166534') + '">' + nd(d) + '</td><td>' + d.map(function (x) { return esc(x.where + ' · ' + x.what); }).join('<br>') + '</td><td>' + esc(localTime(r.updatedAt)) + '</td></tr>'; }).join('');
+  var bAt = lsGet('rc:backupAt');
+  setTimeout(showUsage, 0);
+  return '<div class="page"><div class="row" style="margin-bottom:8px"><h2 style="margin:0;font-size:17px">데이터 표 · 백업</h2><span class="note">실 ' + rows.length + '개 · 마지막 백업: ' + (bAt ? esc(shortTime(bAt)) : '없음') + ' · <span id="usage"></span></span></div>' +
+    '<div class="card" style="padding:8px 12px;margin-bottom:10px"><div class="row" style="gap:8px">' + btn('hb blue', '전체 백업 저장 (데이터+사진)', exportBackup) + btn('hb dark', 'CSV 내보내기 (이 프로젝트)', exportCsv) + btn('hb', '사진만 내보내기 (이 프로젝트)', exportPhotos) +
+    '<label class="hb" style="position:relative;overflow:hidden">백업 불러오기<input type="file" accept=".zip,.json,application/zip,application/json" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
+    '<p class="note" style="margin:6px 0 0">데이터와 사진은 이 앱 안에 저장됩니다. <b>홈 화면 아이콘을 지우면 함께 지워지니</b>, 하루 작업이 끝나면 <b>전체 백업 저장</b> → 공유 → <b>파일에 저장</b>으로 "나의 iPad" 폴더에 남겨 두세요. 백업 ZIP 안의 <b>사진</b> 폴더에는 동/층별로 실 이름이 붙은 사진이 들어 있습니다. 복원할 때는 <b>백업 불러오기</b>에서 ZIP을 고르면 됩니다(나뉜 파일은 한 번에 여러 개 선택). CSV는 엑셀에서 열 수 있습니다.</p></div>' +
+    '<div style="overflow:auto"><table class="t"><thead><tr><th>동</th><th>층</th><th>실명</th><th>종류</th><th>영역</th><th>문</th><th>사진</th><th>미흡</th><th>미흡 내용</th><th>최종수정</th></tr></thead><tbody>' +
+    (tr || '<tr><td colspan="10" class="note">아직 데이터가 없습니다.</td></tr>') + '</tbody></table></div></div>';
+}
+function nd(d) { return d.filter(function (x) { return !x.rec; }).length; } // 미흡 개수(권고사항 제외)
+function localTime(iso) { if (!iso) return ''; var d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+function stamp() { var d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '_' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0'); }
+function safe(n) { return String(n).replace(/[\\/:*?"<>|]/g, '_'); }
+// ───────────── 동별 점수표 ─────────────
+// 가점 항목: 평점 = 배점 × 해당(적합) ÷ 전체   · 감점 항목(배점 음수): 해당(위반)이 1곳이라도 있으면 배점만큼 감점
+// 전체가 0이면 '해당없음'
+var SC_AREAS = ['교수학습영역', '지원영역', '공용영역'];
+// 해당/전체 비율 구간 → 계수: 100% → 1, 75% 이상 → 0.75, 50% 이상 → 0.5, 25% 이상 → 0.25, 그 미만 → 0
+function scCoef(q) { return q >= 1 ? 1 : q >= 0.75 ? 0.75 : q >= 0.5 ? 0.5 : q >= 0.25 ? 0.25 : 0; }
+function scArea(r) { return r.area === '관리행정영역' ? '지원영역' : r.area; } // B-1-2: 관리행정영역은 지원영역으로 합산
+function scoreRows(b) {
+  var rooms = allRooms().filter(function (r) { return r.bldg === b; });
+  rooms.forEach(normDoors);
+  var gen = rooms.filter(function (r) { return isGeneral(r.type); });
+  var rows = [];
+  var row = function (grp, item, pts, list, ok, opt) {
+    opt = opt || {};
+    var all = list ? list.length : 0, hit = list ? list.filter(ok).length : 0;
+    rows.push({ grp: grp, item: item, pts: pts, all: all, hit: hit, red: opt.red, note: opt.note, bonus: opt.bonus });
+  };
+  var inArea = function (a) { return function (r) { return r.area === a; }; }; // B-1-1: 영역 그대로 (관리행정영역 제외)
+  // B-1-1
+  var G1 = 'B-1-1|추락방지 조치';
+  var win = gen.filter(function (r) { return r.type !== '계단' && evalOn(r.win); });
+  row(G1, '(교수학습영역) 창호추락방지 120cm이하', 3, win.filter(inArea('교수학습영역')), function (r) { return winState(r.win) === 'good'; });
+  row(G1, '(지원영역) 창호추락방지 120cm이하', 2, win.filter(inArea('지원영역')), function (r) { return winState(r.win) === 'good'; });
+  var openIn = function (a) { return gen.filter(function (r) { return r.area === a && openOn(r); }); };
+  row(G1, '(지원영역) 공간추락방지 난간', 1, openIn('지원영역'), function (r) { return r.open.rail === '1.2m 이상'; }, { note: '2개층 OPEN구간' });
+  row(G1, '(공용영역) 창호추락방지 120cm이하', 2, win.filter(inArea('공용영역')), function (r) { return winState(r.win) === 'good'; });
+  row(G1, '(공용영역) 공간추락방지 난간', 5, rooms.filter(function (r) { return isRoofLike(r.type); }).concat(openIn('공용영역')), function (r) { return isRoofLike(r.type) ? rooftop(r).rail === '1.2m 이상' : r.open.rail === '1.2m 이상'; }, { note: '옥상·테라스·OPEN구간' });
+  // B-1-2 (문 단위)
+  var G2 = 'B-1-2|출입문 개폐 방식에 따른 안전대책';
+  SC_AREAS.forEach(function (a) {
+    var doors = [];
+    gen.filter(function (r) { return r.type !== '계단' && scArea(r) === a; }).forEach(function (r) { r.doors.forEach(function (d) { doors.push(d); }); });
+    var opened = doors.filter(function (d) { return d.shape !== '문없음'; }), hinged = doors.filter(function (d) { return d.shape === '여닫이'; });
+    row(G2, '(' + a + ') 문 손끼임', 2, opened, function (d) { return d.pinch !== '없음'; });
+    row(G2, '(' + a + ') 여닫이문 시인성', 0.5, hinged.filter(function (d) { return d.floorVis !== '해당없음'; }), function (d) { return d.floorVis === '적용'; });
+    row(G2, '(' + a + ') 여닫이문 시창', 0.5, hinged, function (d) { return d.sight === '적용'; });
+    row(G2, '(' + a + ') 문 돌출물', -1, doors, function (d) { return d.protrude === '있음' || d.step === '있음'; });
+  });
+  // B-1-3
+  var G3 = 'B-1-3|시설물 돌출부에 대한 안전조치';
+  var cor = gen.filter(function (r) { return r.type === '복도'; });
+  row(G3, '모서리 완충', 4, cor.filter(function (r) { return !edgeOf(r.cor).na; }), function (r) { return !edgeOf(r.cor).bad.length; });
+  row(G3, '계단, 복도 단차', 3, cor.filter(function (r) { return r.cor.step && r.cor.step !== '해당없음'; }), function (r) { return r.cor.step === '단차(시인성조치)'; });
+  row(G3, '복도 유효폭(양쪽 2.4m, 편측 1.8m)', -2, cor, function (r) { return (r.cor.type === '편복도' && r.cor.wSide === '1.8m 미만') || (r.cor.type === '중복도' && r.cor.wMid === '2.4m 미만'); });
+  // B-1-4
+  var G4 = 'B-1-4|계단설치 기준';
+  var st = gen.filter(function (r) { return r.type === '계단'; }).map(function (r) { return r.stair; });
+  row(G4, '첫 단, 마지막 단 시인성', 1, st, function (s) { return s.edge === '적용'; });
+  row(G4, '논슬립 설치, 유지관리', 1, st, function (s) { return s.nonslip === '설치' && s.nonslipCare === '양호'; });
+  row(G4, '단너비 기준 적합, 균일 / 미흡 시 시인성', 1, st, function (s) { return s.tread === '양호' && s.riser === '양호'; });
+  row(G4, '난간살 기준', 1, st, function (s) { return s.baluster === '양호'; });
+  row(G4, '난간 높이', 1, st, function (s) { return s.rail === '양호'; });
+  row(G4, '최상단(150cm)/개방구간(120cm) 난간 높이', 2, st.filter(function (s) { return s.top !== '해당없음'; }), function (s) { return s.top === '1.5m 이상'; });
+  row(G4, '유효너비 150cm', -2, st, function (s) { return s.wStair === '미흡' || s.wLand === '미흡'; });
+  // B-1-5
+  var G5 = 'B-1-5|체육관의 안전환경 조성';
+  var gy = gen.filter(function (r) { return r.type === '체육관'; }).map(function (r) { return Object.assign(newGym(), r.gym || {}); });
+  row(G5, '외부 직접 연결 / 직통계단', 1, gy.filter(function (g) { return g.direct !== '해당없음'; }), function (g) { return g.direct === '설치'; });
+  row(G5, '출입문 상시 이용 가능', 1, gy, function (g) { return g.open === '상시개방'; });
+  row(G5, '충격흡수재 설치(H:150cm)', 2, gy, function (g) { return g.pad === '설치(1.5m 이상)'; });
+  row(G5, '출입구 시건', -1, gy, function (g) { return g.lock === '시건O' || g.lock === '시건'; });
+  // B-1-6
+  var G6 = 'B-1-6|도서실(자료실)의 안전환경 조성';
+  var lb = gen.filter(function (r) { return r.type === '도서관'; }).map(function (r) { return Object.assign(newLib(), r.lib || {}); });
+  row(G6, '도서관 전도방지', 2, lb, function (l) { return l.tip === '적용'; });
+  row(G6, '도서관 마감관리', 1, lb, function (l) { return l.finish === '양호'; });
+  // B-3-4
+  var G9 = 'B-3-4|응급통신시설(비상벨) 및 불법촬영 점검 관리';
+  var wcs = gen.filter(function (r) { return isWc(r.type) && !isDisWc(r.type); }).map(function (r) { return Object.assign(newWc(), r.wc || {}); });
+  // 설치여부: 화장실(장애인화장실 제외) + 복도 · 연계여부: 설치된 곳만 전체로
+  var em = wcs.concat(cor.map(function (r) { return r.cor; }));
+  row(G9, '응급통신시설 설치여부 (화장실 + 복도)', 2, em, function (c) { return c.emerg === '있음'; }, { note: '장애인화장실 제외' });
+  row(G9, '응급통신시설 연계여부', 1, em.filter(function (c) { return c.emerg === '있음'; }), function (c) { return c.link === '연계'; }, { note: '설치된 곳 기준' });
+  var fl = {}, fk = [];
+  gen.filter(function (r) { return isWc(r.type); }).forEach(function (r) { if (!fl[r.floor]) { fl[r.floor] = { yes: false }; fk.push(r.floor); } if (Object.assign(newWc(), r.wc || {}).card === '비치') fl[r.floor].yes = true; });
+  row(G9, '불법촬영 간이점검카드 (층별, 가산점)', 1, fk.map(function (k) { return fl[k]; }), function (f) { return f.yes; }, { note: '층 단위 · 100%일 때만 가산', bonus: true });
+  rows.forEach(function (x) {
+    if (!x.all || (x.pts < 0 && !x.hit)) { x.score = null; return; } // 감점 항목은 위반이 없으면 '해당없음'
+    x.ratio = x.hit / x.all;
+    x.score = x.pts < 0 ? (x.hit ? x.pts : 0) : x.bonus ? (x.ratio >= 1 ? x.pts : 0) : Math.round(x.pts * scCoef(x.ratio) * 100) / 100;
+  });
+  return { rows: rows, glass: glassReport(rooms), fin: gen.filter(function (r) { return r.type !== '계단' || true; }) };
+}
+function scorePage() {
+  var bl = S.site.bldgList;
+  if (!bl.length) return '<div class="page"><p class="note">동을 먼저 추가하세요.</p></div>';
+  if (bl.indexOf(S.scoreB) < 0) S.scoreB = S.bldg && bl.indexOf(S.bldg) >= 0 ? S.bldg : bl[0];
+  var b = S.scoreB, d = scoreRows(b), rows = d.rows, g = d.glass;
+  var fmt = function (v) { return (Math.round(v * 100) / 100).toFixed(2); };
+  var na = '<td class="sv na">해당없음</td>';
+  var total = 0;
+  var body = '', i = 0;
+  while (i < rows.length) {
+    var grp = rows[i].grp, n = 0; while (i + n < rows.length && rows[i + n].grp === grp) n++;
+    for (var k = 0; k < n; k++) {
+      var x = rows[i + k], gp = grp.split('|');
+      if (x.score != null) total += x.score;
+      body += '<tr>' + (k === 0 ? '<th class="sg" rowspan="' + n + '">' + esc(gp[0]) + '<br>' + esc(gp[1]) + '</th>' : '') +
+        '<td class="sp' + (x.pts < 0 ? ' neg' : '') + '">' + x.pts + '</td>' +
+        '<td class="si' + (x.red ? ' red' : '') + '">' + esc(x.item) + (x.note ? ' <small>' + esc(x.note) + '</small>' : '') + '</td><td class="sn">' + x.all + '</td><td class="sh">' + x.hit + '</td>' +
+        (x.score == null ? (x.pts < 0 ? '<td class="sv na neg">해당없음</td>' : na) : '<td class="sv">' + fmt(x.score) + '</td>') + '</tr>';
+    }
+    i += n;
+    if (grp.indexOf('B-1-6') === 0) {
+      // B-2-2 유리재료: 층별 등급 (S: 강화유리+비산방지, A: 둘 중 하나) · 기존 산정식
+      var gs = g.n ? g.final : null; if (gs != null) total += gs;
+      body += '<tr><th class="sg" rowspan="2">B-2-2<br>유리재료의 안전조치</th><td class="sp">6</td><td class="si">강화유리 + 비산방지필름 적용</td><td class="sn" rowspan="2">' + (g.tS + g.tA + g.tN) + '</td><td class="sh">' + g.tS + '</td>' + (gs == null ? '<td class="sv na" rowspan="2">해당없음</td>' : '<td class="sv" rowspan="2">' + fmt(gs) + '</td>') + '</tr>' +
+        '<tr><td class="sp">4</td><td class="si">강화유리 적용 or 일반유리 + 비산방지필름 적용</td><td class="sh">' + g.tA + '</td></tr>';
+      var inR = allRooms().filter(function (r) { return r.bldg === b && isGeneral(r.type); }), outR = allRooms().filter(function (r) { return r.bldg === b && r.type === '외벽'; });
+      var cnt = function (list, v) { return list.filter(function (r) { return r.fin && r.fin.finish === v; }).length; };
+      // 실내재료 (엑셀 산정식): 전체 0 → 해당없음 · 불연+준불연=전체이고 불연=준불연 → 2.5 · 불연+준불연>전체 → 점수확인필요 · 그 외 4×계수(불연비율) + 2×계수(준불연비율)
+      var iD = inR.length, iA = cnt(inR, '불연'), iB = cnt(inR, '준불연'), inScore;
+      if (!iD) inScore = null;
+      else if (iA + iB === iD && iA === iB) inScore = 2.5;
+      else if (iD < iA + iB) inScore = 'chk';
+      else inScore = 4 * scCoef(iA / iD) + 2 * scCoef(iB / iD);
+      if (typeof inScore === 'number') total += inScore;
+      // 실외재료 (엑셀 산정식, 동 외벽 길이 기준): 실내재료와 같음 — 전체 0 → 해당없음 · 불연+준불연=전체이고 불연=준불연 → 2.5 · 합>전체 → 점수확인필요 · 그 외 4×계수(불연) + 2×계수(준불연)
+      var oD = 0, oA = 0, oB = 0; outR.forEach(function (r) { var w = wallLen(r); oD += w.total; oA += w.a; oB += w.b; });
+      var num = function (v) { return Math.round(v * 100) / 100; };
+      var outScore = !outR.length || !oD ? null : (oA + oB === oD && oA === oB ? 2.5 : oA + oB > oD ? 'chk' : 4 * scCoef(oA / oD) + 2 * scCoef(oB / oD));
+      if (typeof outScore === 'number') total += outScore;
+      var outCell = outScore == null ? '<td class="sv na" rowspan="2">해당없음</td>' : outScore === 'chk' ? '<td class="sv na neg" rowspan="2">점수확인필요</td>' : '<td class="sv" rowspan="2">' + fmt(outScore) + '</td>';
+      var inCell = inScore == null ? '<td class="sv na" rowspan="2">해당없음</td>' : inScore === 'chk' ? '<td class="sv na neg" rowspan="2">점수확인필요</td>' : '<td class="sv" rowspan="2">' + fmt(inScore) + '</td>';
+      body += '<tr><th class="sg" rowspan="4">B-2-3<br>화재 예방을 위한 마감재료 관리</th><td class="sp">4</td><td class="si">실내재료 · 불연</td><td class="sn" rowspan="2">' + iD + '</td><td class="sh">' + iA + '</td>' + inCell + '</tr>' +
+        '<tr><td class="sp">2</td><td class="si">실내재료 · 준불연</td><td class="sh">' + iB + '</td></tr>' +
+        '<tr><td class="sp">4</td><td class="si">실외재료 · 불연 <small>외벽 길이(m)</small></td><td class="sn" rowspan="2">' + num(oD) + '</td><td class="sh">' + num(oA) + '</td>' + outCell + '</tr>' +
+        '<tr><td class="sp">3</td><td class="si">실외재료 · 준불연</td><td class="sh">' + num(oB) + '</td></tr>';
+    }
+  }
+  var tabs = bl.map(function (x) { return btn('lb' + (x === b ? ' on' : ''), esc(x), function () { S.scoreB = x; render(); }); }).join('');
+  return '<div class="page"><div class="row" style="margin-bottom:8px;gap:10px"><h2 style="margin:0;font-size:17px">동별 점수표</h2><div class="row">' + tabs + '</div>' +
+    '</div>' +
+    '<div style="overflow:auto"><table class="st"><thead><tr><th style="width:150px">구분</th><th style="width:56px">배점</th><th style="width:380px">항목</th><th style="width:60px">전체</th><th style="width:60px">해당</th><th style="width:88px">평점</th></tr></thead><tbody>' + body +
+    '<tr class="tot"><th colspan="5">' + esc(b) + ' 합계 (입력된 항목 기준)</th><td class="sv">' + fmt(total) + '</td></tr></tbody></table></div>' +
+    '<p class="note">빨간 글씨 항목은 아직 입력 화면에 없는 항목입니다. 전체 = 평가한 개소(문 항목은 문 개수, 불법촬영 카드는 층 수), 해당 = 기준에 맞는 개소(감점 항목은 위반 개소).</p></div>';
+}
+function resultPage() {
+  var h = '<div class="page"><div class="row" style="margin-bottom:8px"><h2 style="margin:0;font-size:17px">현장심사 결과</h2><span class="note">대분류별 미흡실</span>' + btn('hb', '입력 화면으로', function () { S.view = 'input'; render(); }, ' style="margin-left:auto"') + '</div>';
+  // 항목별 미흡실 (대분류 → 세부항목)
+  h += reportSection(allRooms()) + '</div>';
+  return h;
+}
+function reportGroups(rooms) {
+  rooms.forEach(normDoors);
+  var G = function (t, subs) { return { title: t, subs: subs.map(function (s) { return { title: s, items: [] }; }) }; };
+  var g = [
+    G('추락방지조치', ['창호 추락방지', '공간추락방지 난간 (옥상·테라스·OPEN구간)']),
+    G('출입문 관련 사항', ['손끼임방지조치', '바닥 시인성 조치', '시창', '문 돌출물(감점)']),
+    G('복도', ['모서리 완충', '바닥 단차이', '복도 유효너비(감점)']),
+    G('계단', ['첫·끝단 시인성', '논슬립 설치/관리', '단높이', '단너비', '난간높이', '난간살', '계단 및 계단참 유효너비(감점)']),
+    G('체육관', ['직통계단 연결여부', '상시 개방여부', '충격흡수재', '건축물 폐쇄여부(감점)']),
+    G('도서관', ['전도방지 조치', '마감재료 관리']),
+    G('유리재료', ['']),
+    G('응급통신시설', ['화장실 설치여부', '복도 설치여부', '불법촬영기기 간이점검카드(가산점)']),
+    G('그 밖의 미흡', [''])
+  ];
+  var add = function (gi, si, r, what) { g[gi].subs[si].items.push({ bldg: r.bldg, room: (r.floor === COMMON ? '' : r.floor + ' ') + r.name, what: what || '' }); };
+  var card = { keys: [] };
+  rooms.forEach(function (r) {
+    if (!isGeneral(r.type)) { for (var k in r.res) if (r.res[k] === 'ng' && SIMPLE[r.type].indexOf(k) >= 0) add(8, 0, r, k + ' 미흡'); if (isRoofLike(r.type)) { var tp = rooftop(r); if (tp.rail === '1.2m 미만') add(0, 1, r, '난간 1.2m 미만'); if (tp.parapet === '미흡') { add(0, 1, r, '파라펫 관련 권고조치 필요'); g[0].subs[1].items[g[0].subs[1].items.length - 1].rec = true; } } return; }
+    if (winState(r.win) === 'bad') add(0, 0, r);
+    if (openOn(r) && r.open.rail === '1.2m 미만') add(0, 1, r, '2개층 OPEN구간 난간 1.2m 미만');
+    var many = r.doors.length > 1;
+    r.doors.forEach(function (d, i) {
+      var dn = many ? '문' + (i + 1) : '', open = d.shape !== '문없음';
+      if (open && d.pinch === '없음') add(1, 0, r, dn);
+      if (d.shape === '여닫이' && d.floorVis === '미적용') add(1, 1, r, dn);
+      if (d.shape === '여닫이' && d.sight === '미적용') add(1, 2, r, dn);
+      var bump = []; if (d.step === '있음') bump.push('단차'); if (d.protrude === '있음') bump.push('돌출물');
+      if (bump.length) add(1, 3, r, (dn ? dn + ' · ' : '') + bump.join(', '));
+      var gg = glassGrade(d);
+      if (gg && gg !== 'S') add(6, 0, r, (dn ? dn + ' · ' : '') + (d.glass === '강화유리' ? '비산방지필름 미적용' : (d.film === '적용' ? '일반유리' : '일반유리, 비산방지필름 미적용')));
+    });
+    if (r.fin.finish === '기타(확인필요)') add(8, 0, r, '마감재료 기타(확인필요)');
+    if (r.type === '복도') {
+      var c = r.cor;
+      var eg = edgeOf(c); if (eg.bad.length) add(2, 0, r, eg.bad.join(', '));
+      if (c.step === '단차(시인성조치X)') add(2, 1, r, '시인성조치X');
+      if ((c.type === '편복도' && c.wSide === '1.8m 미만') || (c.type === '중복도' && c.wMid === '2.4m 미만')) add(2, 2, r, c.type + ' ' + (c.type === '편복도' ? '1.8m 미만' : '2.4m 미만'));
+      if (c.emerg === '없음') add(7, 1, r, '미설치'); else if (c.link === '미연계') add(7, 1, r, '미연계');
+    }
+    if (r.type === '계단') {
+      var s = r.stair;
+      if (s.edge === '미적용') add(3, 0, r);
+      if (s.nonslip === '미설치') add(3, 1, r, '미설치'); else if (s.nonslipCare === '미흡') add(3, 1, r, '관리상태 미흡');
+      if (s.riser === '미흡') add(3, 2, r);
+      if (s.tread === '미흡') add(3, 3, r);
+      if (s.rail === '미흡') add(3, 4, r);
+      if (s.top === '1.5m 미만') add(3, 4, r, '최상층 난간 1.5m 미만');
+      if (s.baluster === '미흡') add(3, 5, r);
+      var w = []; if (s.wStair === '미흡') w.push('계단'); if (s.wLand === '미흡') w.push('계단참');
+      if (w.length) add(3, 6, r, w.join('·') + ' 유효폭');
+    }
+    if (r.type === '체육관') {
+      var y = Object.assign(newGym(), r.gym || {});
+      if (y.direct === '미설치') add(4, 0, r, '미설치');
+      if (y.open === '미개방') add(4, 1, r, '미개방');
+      if (y.pad !== '설치(1.5m 이상)') add(4, 2, r, y.pad);
+      if (y.lock === '시건O' || y.lock === '시건') add(4, 3, r, '시건');
+    }
+    if (r.type === '도서관') {
+      var l = Object.assign(newLib(), r.lib || {});
+      if (l.tip === '미적용') add(5, 0, r);
+      if (l.finish === '미흡') add(5, 1, r);
+    }
+    if (isWc(r.type)) {
+      var wc = Object.assign(newWc(), r.wc || {});
+      if (!isDisWc(r.type)) { if (wc.emerg === '없음') add(7, 0, r, '미설치'); else if (wc.link === '미연계') add(7, 0, r, '미연계'); }
+      var fk = r.bldg + '|' + r.floor;
+      if (!card[fk]) { card[fk] = { bldg: r.bldg, floor: r.floor, yes: false }; card.keys.push(fk); }
+      if (wc.card === '비치') card[fk].yes = true;
+    }
+  });
+  // 불법촬영 비치카드: 층별 평가, 그 층 화장실 중 1개소라도 비치하면 양호
+  var fl = card.keys.map(function (k) { return card[k]; }), fy = fl.filter(function (f) { return f.yes; }).length;
+  fl.forEach(function (f) { if (!f.yes) g[7].subs[2].items.push({ bldg: f.bldg, room: f.floor, what: '비치 없음' }); });
+  g[7].subs[2].note = '가산점 · 층별 평가 · 비치 ' + fy + '개층 / 화장실 있는 ' + fl.length + '개층';
+  return g;
+}
+function reportSection(rooms) {
+  var g = reportGroups(rooms), total = 0;
+  var body = g.map(function (sec, gi) {
+    var real = function (s) { return s.items.filter(function (x) { return !x.rec; }).length; }; // rec = 권고사항(미흡 개수 제외)
+    var n = 0; sec.subs.forEach(function (s) { if (!s.note && !s.quiet) n += real(s); });
+    if (gi === 8 && !sec.subs[0].items.length) return '';
+    total += n;
+    var list = function (items) {
+      if (!items.length) return '';
+      var order = [], by = {};
+      items.forEach(function (x) { if (!by[x.bldg]) { by[x.bldg] = []; order.push(x.bldg); } by[x.bldg].push(x); });
+      return '<div class="rb">' + order.map(function (b) {
+        return '<div class="rbg"><b class="rbn">' + esc(b) + ' <small>' + by[b].length + '</small></b><ul class="rl">' + by[b].map(function (x) { return '<li>' + esc(x.room) + (x.what ? ' <span>— ' + esc(x.what) + '</span>' : '') + '</li>'; }).join('') + '</ul></div>';
+      }).join('') + '</div>';
+    };
+    var head = '<div class="rg"><div class="rgh"><b>' + (gi + 1) + '. ' + esc(sec.title) + '</b>' + (n ? '<span class="pill ng">미흡 ' + n + '</span>' : '<span class="pill ok">이상 없음</span>') + '</div>';
+    if (sec.subs.length === 1 && !sec.subs[0].title) return head + list(sec.subs[0].items) + '</div>';
+    return head + sec.subs.map(function (s, si) {
+      var c = real(s), rc = s.items.length - c;
+      return '<div class="rs"><span class="rst">' + (si + 1) + ') ' + esc(s.title) + '</span>' +
+        (s.quiet ? '' : s.note ? '<span class="note">' + esc(s.note) + '</span>' : (c ? '<span class="cnt">' + c + '건</span>' : (rc ? '' : '<span class="note">해당 없음</span>')) + (rc ? '<span class="note">권고 ' + rc + '건</span>' : '')) + list(s.items) + '</div>';
+    }).join('') + '</div>';
+  }).join('');
+  return '<section class="card" style="padding:10px 14px"><h3 style="font-size:15px">항목별 미흡실 <small>미흡 ' + total + '건 · 대분류별</small></h3>' + body + '</section>';
+}
+// 모달
+function modal(title, label, ph, onOk) {
+  var m = document.getElementById('modal');
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="' + esc(title) + '"><form class="box" id="mf"><h3 style="margin:0 0 8px;font-size:16px">' + esc(title) + '</h3><label style="font-size:13px;color:#374151">' + esc(label) + '<input id="mi" placeholder="' + esc(ph) + '" autocomplete="off"></label>' +
+    '<div class="row" style="justify-content:flex-end"><button type="button" class="hb" id="mc">취소</button><button type="submit" class="hb blue">확인</button></div></form></div>';
+  var i = document.getElementById('mi'); setTimeout(function () { i.focus(); }, 0);
+  document.getElementById('mc').onclick = function () { m.innerHTML = ''; };
+  document.getElementById('mf').onsubmit = function (e) { e.preventDefault(); var v = i.value.trim(); if (!v) return; m.innerHTML = ''; onOk(v); };
+}
+function openNewProject() {
+  modal('새 프로젝트', '프로젝트명 (예: 가온고등학교 신축공사)', '프로젝트명', function (name) {
+    var id = 'P' + Date.now().toString(36);
+    var pr = { id: id, name: name }; S.projects.push(pr); lsSet('rc:projects', S.projects);
+    switchProject(id); S.site = defaultSite(); markSite();
+    S.bldg = null; S.floor = '1층'; render(); openNewBldg();
+  });
+}
+function openNewBldg() { modal('동 추가', '동 이름 (예: 신관, 다목적강당)', '동 이름', function (n) { if (S.site.bldgList.indexOf(n) < 0) { S.site.bldgList.push(n); markSite(); } goto(n, S.floor || '1층'); }); }
+function switchProject(id) {
+  S.pick = null;
+  S.project = id; S.cur = null; S.door = 0; S.view = 'input';
+  loadLocal(id);
+  var last = lsGet('rc:last');
+  S.bldg = last && last.project === id ? last.bldg : S.site.bldgList[0];
+  S.floor = last && last.project === id ? last.floor : (S.site.up[0] || '1층');
+  if (S.site.bldgList.indexOf(S.bldg) < 0) S.bldg = S.site.bldgList[0] || null;
+  if (S.site.up.indexOf(S.floor) < 0 && S.site.down.indexOf(S.floor) < 0 && !(S.site.roof && S.floor === ROOF) && S.floor !== COMMON) S.floor = S.site.up[0] || '1층';
+  ensureAuto(); subscribe(id); saveLocal(); render(); scheduleFlush(200);
+}
+var tt = null;
+function toast(t) { var el = document.getElementById('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(tt); tt = setTimeout(function () { el.style.display = 'none'; }, 2200); }
+
+// 이벤트
+document.addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (b && ACT[b.getAttribute('data-a')]) ACT[b.getAttribute('data-a')](); });
+document.addEventListener('change', function (e) {
+  var t = e.target;
+  if (t.id === 'projSel') { switchProject(t.value); return; }
+  if (t.hasAttribute && t.hasAttribute('data-photo')) { onPhotos(t); return; }
+  if (t.hasAttribute && t.hasAttribute('data-backup')) { importBackup(t); t.value = ''; return; }
+  if (t.hasAttribute && t.hasAttribute('data-wl')) { var k = t.getAttribute('data-wl'), n = parseFloat(t.value); if (isNaN(n) || n < 0) n = k === 'total' ? 100 : 0; upd(function (x) { wallLen(x)[k] = n; }); return; }
+  if (t.id === 'roomName') { var v = t.value.trim(); if (v) upd(function (x) { x.name = v; x.ocr = false; }); }
+});
+
+// 시작
+var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+var IS_STANDALONE = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+function showUsage() {
+  var el = document.getElementById('usage'); if (!el) return;
+  try { navigator.storage.estimate().then(function (e) { el.textContent = '사용 중 ' + mb(e.usage || 0) + (e.quota ? ' / 가능 ' + mb(e.quota) : ''); }); } catch (e) {}
+}
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('sw.js').catch(function () {});
+}
+var last = lsGet('rc:last');
+S.projects = lsGet('rc:projects') || [];
+openIdb().then(function () { return idbAll(); }).then(function (l) { S.photosQ = l.length; l.forEach(function (p) { try { localUrls[p.key] = URL.createObjectURL(p.blob); } catch (e) {} }); render(); });
+if (last && last.project) switchProject(last.project); else render();
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(function (ok) { S.persist = ok; render(); }); } catch (e) {}
+})();
+</script>
+</body>
+</html>
