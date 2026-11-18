@@ -45,8 +45,27 @@ table.st thead th{background:#4B5563;color:#fff;font-weight:700;text-align:cente
 .st .sv{text-align:center;background:#ECFCCB;font-weight:700}.st .sv.na{font-weight:400;color:#166534}.st .sv.na.neg{color:#DC2626}
 .st .tot th{text-align:right;background:#F8FAFC}.st .tot .sv{background:#FEF9C3;color:#B91C1C;font-size:14px}
 .wl{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#374151}.wl input{width:90px;height:32px;border:1px solid #CBD5E1;border-radius:6px;padding:0 8px;font-size:15px;text-align:right}.wl i{font-style:normal;color:#6B7280}
-.modal.scan{align-items:flex-start;padding-top:12vh}.scin{width:100%;box-sizing:border-box;font-family:inherit;font-size:22px;padding:8px 12px;margin:2px 0 6px;resize:none;border:2px solid #1D4ED8!important;border-radius:10px!important}
+.modal.scan{inset:auto;left:0;right:0;top:0;height:var(--app-h,100%);background:transparent;pointer-events:none;align-items:flex-end;justify-content:flex-end;padding:0 calc(12px + env(safe-area-inset-right)) 76px 0}
+.modal.scan .box{pointer-events:auto;width:340px;max-width:92vw;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.28);border:1px solid #CBD5E1}
+.hb.scanbtn{min-height:40px}.scin{width:100%;box-sizing:border-box;font-family:inherit;font-size:18px;padding:6px 10px;margin:2px 0 2px;resize:none;border:2px solid #1D4ED8!important;border-radius:10px!important}
 .scsteps{margin:4px 0 10px;padding-left:20px;font-size:14px;color:#374151;line-height:1.7}
+.cam{position:fixed;inset:0;z-index:60;background:#000;display:flex;align-items:center;justify-content:center}
+.cam video{width:100%;height:100%;object-fit:contain;background:#000}
+.camflash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}.camflash.on{animation:camfl .25s ease-out}@keyframes camfl{0%{opacity:.85}100%{opacity:0}}
+.camtop{position:absolute;top:calc(10px + env(safe-area-inset-top));left:14px;right:120px;display:flex;flex-direction:column;gap:2px;color:#fff;text-shadow:0 1px 3px #000;font-size:15px}.camtop span{font-size:12.5px;color:#E5E7EB}
+.camgrid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,rgba(255,255,255,.22) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.22) 1px,transparent 1px);background-size:33.33% 33.33%}
+.camside{position:absolute;right:calc(18px + env(safe-area-inset-right));top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 0 calc(18px + env(safe-area-inset-bottom))}
+.camdone{min-width:84px;height:44px;border-radius:22px;border:0;background:#fff;color:#111827;font-size:16px;font-weight:700}
+.camshot{width:86px;height:86px;border-radius:50%;border:5px solid #fff;background:rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;box-shadow:0 4px 18px rgba(0,0,0,.5)}.camshot:active{transform:scale(.94);background:rgba(255,255,255,.5)}
+.camthumb{width:64px;height:64px;border-radius:10px;overflow:hidden;border:2px solid #fff;background:#222}.camthumb img{width:100%;height:100%;object-fit:cover}
+.camerr{position:absolute;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;text-align:center;padding:24px;font-size:15px}
+.hb.syscam{min-height:40px;font-size:12px;color:#4B5563}
+.hb.allp{min-height:40px;font-weight:700}
+.gal{max-width:1000px!important;width:96vw}.galg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:76vh;overflow:auto}
+.gi{display:flex;flex-direction:column;gap:3px;padding:4px;border:1px solid #CBD5E1;border-radius:8px;background:#fff}.gi img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;background:#111}.gi em{font-style:normal;font-size:10.5px;color:#374151;word-break:break-all;text-align:left}
+.lb.gtg{min-height:22px;font-size:11px;padding:0 8px;margin-left:6px}
+table.gd{border-collapse:collapse;width:100%;font-size:11.5px;background:#fff}table.gd th,table.gd td{border:1px solid #E2E8F0;padding:2px 6px;text-align:center;vertical-align:top}table.gd th{background:#E2E8F0;color:#1F2937}
+.gdl{text-align:left!important}.gdi{display:inline-block;margin:1px 6px 1px 0;padding:0 5px;border-radius:4px;font-size:11px}.g-S{background:#DCFCE7}.g-A{background:#E0F2FE}.g-n{background:#FEE2E2}.gdt td{font-weight:700;background:#F1F5F9}
 .wcgrid .g>.l{flex-basis:110px}
 .pickbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:6px 12px;background:#DBEAFE;border-bottom:1px solid #93C5FD;color:#1E3A8A;font-size:13px;flex-wrap:wrap}.pickbar span{flex:1 1 auto}
 .room.pick{border:1px dashed #1D4ED8;background:#F8FBFF}
@@ -129,7 +148,7 @@ main{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0}
 .next span{font-size:12px;color:#CBD5E1}
 .confirm{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:6px 12px;background:#FEF2F2;border-bottom:1px solid #FCA5A5;color:#991B1B}
 .empty{flex:1 1 auto;display:flex;align-items:center;justify-content:center;color:#4B5563;font-size:15px;padding:20px;text-align:center}
-.toast{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:20;max-width:90vw}
+.toast{z-index:70!important;position:fixed;left:50%;bottom:72px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:20;max-width:90vw}
 .page{flex:1 1 auto;overflow:auto;padding:12px 16px}
 table.t{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
 table.t th{padding:6px 8px;border:1px solid #CBD5E1;background:#F1F5F9;font-weight:700;color:#111827;white-space:nowrap}
@@ -259,6 +278,9 @@ var ROOF = '옥상층';
 var COMMON = '동 공통';
 var WC_TYPES = ['화장실(남)', '화장실(여)', '장애인화장실(남)', '장애인화장실(여)'];
 var DEFAULT_AREA = { '개별실': '교수학습영역', '도서관': '지원영역', '체육관': '지원영역', '복도': '공용영역', '계단': '공용영역' };
+// 이 종류는 영역이 정해져 있어 다른 영역을 고를 수 없음
+var FIXED_AREA = { '도서관': '지원영역', '체육관': '지원영역', '복도': '공용영역', '화장실(남)': '공용영역', '화장실(여)': '공용영역', '장애인화장실(남)': '공용영역', '장애인화장실(여)': '공용영역' };
+function fixArea(r) { var a = FIXED_AREA[r.type]; if (a && r.area !== a) r.area = a; return a; }
 var BASE_NAME = { '화장실(남)': '남자화장실', '화장실(여)': '여자화장실', '장애인화장실(남)': '장애인화장실(남)', '장애인화장실(여)': '장애인화장실(여)', '옥상': '옥상', '테라스': '테라스', '도서관': '도서관', '체육관': '체육관' };
 
 function isGeneral(t) { return !SIMPLE[t]; }
@@ -269,7 +291,7 @@ function newStair() { return { nonslip: '설치', nonslipCare: '양호', edge: '
 function rid() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function makeRoom(bldg, floor, name, type, order) {
   var res = {}; (SIMPLE[type] || []).forEach(function (k) { res[k] = 'ok'; });
-  return { id: rid(), bldg: bldg, floor: floor, name: name, type: type, order: order || Date.now(), ocr: false, area: DEFAULT_AREA[type] || '공용영역',
+  return { id: rid(), bldg: bldg, floor: floor, name: name, type: type, order: order || Date.now(), ocr: false, area: FIXED_AREA[type] || DEFAULT_AREA[type] || '공용영역',
     doors: type === '계단' ? [] : (isGeneral(type) ? [newDoor()] : []), win: newWin(floor), fin: { finish: '기타(확인필요)' },
     cor: newCor(), stair: newStair(), gym: newGym(), wc: newWc(), lib: newLib(), res: res, photos: [] };
 }
@@ -283,7 +305,7 @@ function issues(form, o) {
 }
 function doorIssues(d) {
   var out = issues(DOOR_FORM.filter(function (f) { return ['step', 'protrude', 'glass', 'film'].indexOf(f.key) < 0; }), d);
-  var p = []; if (d.step === '있음') p.push('단차'); if (d.protrude === '있음') p.push('돌출물');
+  var p = []; if (d.shape !== '문없음') { if (d.step === '있음') p.push('단차'); if (d.protrude === '있음') p.push('돌출물'); }
   if (p.length) out.push('문 돌출물 감점(' + p.join(', ') + ')');
   return out;
 }
@@ -336,7 +358,7 @@ function glassReport(rooms) {
   rooms.forEach(function (r) {
     if (!isGeneral(r.type)) return;
     if (!fl[r.floor]) { fl[r.floor] = { floor: r.floor, S: 0, A: 0, N: 0 }; keys.push(r.floor); }
-    r.doors.forEach(function (d) { var g = glassGrade(d); if (g === 'S') fl[r.floor].S++; else if (g === 'A') fl[r.floor].A++; else if (g === '미흡') fl[r.floor].N++; });
+    r.doors.forEach(function (d, i) { var g = glassGrade(d); if (!g) return; if (g === 'S') fl[r.floor].S++; else if (g === 'A') fl[r.floor].A++; else fl[r.floor].N++; (fl[r.floor].list = fl[r.floor].list || []).push({ room: r.name + (r.doors.length > 1 ? ' 문' + (i + 1) : ''), g: g, glass: d.glass, film: d.film }); });
   });
   var rows = keys.map(function (k) { return fl[k]; }).sort(function (a, b) { return floorNum(a.floor) - floorNum(b.floor); });
   var n = 0, cS = 0, cA = 0, tS = 0, tA = 0, tN = 0;
@@ -377,6 +399,7 @@ function loadLocal(p) {
     if (!touched) { delete S.rooms[id]; return; }
     r.name = '외벽(' + r.floor + ')'; r.floor = COMMON;
   });
+  Object.keys(S.rooms).forEach(function (id) { fixArea(S.rooms[id]); });
   Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.cor && r.cor.corner == null) r.cor.corner = '양호'; if (r.cor && r.cor.step === '없음') r.cor.step = '해당없음'; if (r.cor && r.cor.step === '있음') r.cor.step = '단차(시인성조치X)'; if (isWc(r.type) && !r.wc) { r.wc = newWc(); if (!r.doors || !r.doors.length) r.doors = [newDoor()]; } }); S.pending = d.pending || {}; S.pendingSite = !!d.pendingSite;
 }
 function defaultSite() { return { bldgList: [], up: ['1층'], down: [], school: '중·고등학교' }; }
@@ -452,6 +475,7 @@ function act(fn) { var k = 'a' + (actN++); ACT[k] = fn; return k; }
 function btn(cls, label, fn, extra) { return '<button type="button" class="' + cls + '" data-a="' + act(fn) + '"' + (extra || '') + '>' + label + '</button>'; }
 // 출입문 '문 돌출물'(감점항목): 하위 항목 단차 · 돌출물
 function doorBumpGroup(d, di) {
+  if (d.shape === '문없음') return '<div class="g"><span class="l">문 돌출물</span><span class="note">문없음 · 평가 제외</span></div>';
   return '<div class="g" role="group" aria-label="문 돌출물"><span class="l">문 돌출물<small>(감점항목)</small></span><div class="opts">' +
     [['step', '단차'], ['protrude', '돌출물']].map(function (k) {
       return '<div class="optrow"><em style="width:40px">' + k[1] + '</em>' + ['없음', '있음'].map(function (o) { var on = d[k[0]] === o, bad = on && o === '있음';
@@ -539,14 +563,13 @@ function mainPanel() {
   var gen = isGeneral(r.type);
   var h = '<main><div class="rh"><div style="display:flex;flex-direction:column;flex:1 1 auto;min-width:0"><span class="meta">' + esc(r.bldg + ' ' + r.floor + ' · ' + (r.ocr ? '실명판 인식 가명칭 · ' : '') + r.type) + '</span>' +
     '<input id="roomName" aria-label="실 이름" value="' + esc(r.name) + '"></div>' +
-    btn('hb dark', CAM + '실명 글자인식', function () { openScan(r); }) +
     btn('hb' + (S.pick === r.id ? ' blue' : ''), S.pick === r.id ? '가져올 실을 고르세요…' : '다른 실 값 가져오기', function () { S.pick = S.pick === r.id ? null : r.id; S.confirmDel = false; render(); }) + btn('hb', '기본값으로', resetRoom) + '</div>';
   if (S.confirmDel) h += '<div class="confirm" role="alert"><strong>' + esc(r.name) + '</strong><span>을(를) 삭제할까요? 입력 내용과 사진 기록 ' + r.photos.length + '장이 함께 지워집니다.</span>' +
     btn('hb', '삭제', delRoom, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDel = false; render(); }) + '</div>';
   h += '<div class="scroll">';
   if (gen) {
-    h += '<div class="card inline"><div class="grp" role="group" aria-label="영역구분"><b>영역구분</b>' + AREAS.map(function (a) { return btn('c' + (r.area === a ? ' on' : ''), a, function () { upd(function (x) { x.area = a; }); }); }).join('') + '</div>' +
-      '<div class="grp" role="group" aria-label="마감재료"><b>마감재료</b>' + FIN_FORM[0].opts.map(function (o) { var on = r.fin.finish === o, bad = on && o === '기타(확인필요)'; return btn('c' + (bad ? ' bad' : on ? ' on' : ''), o, function () { upd(function (x) { x.fin.finish = o; }); }); }).join('') + '</div></div>';
+    h += '<div class="card inline"><div class="grp" role="group" aria-label="영역구분"><b>영역구분</b>' + (function () { var fx = fixArea(r); return AREAS.map(function (a) { if (fx && a !== fx) return '<span class="c dis" aria-disabled="true">' + a + '</span>'; return btn('c' + (r.area === a ? ' on' : ''), a, function () { upd(function (x) { x.area = a; }); }); }).join('') + (fx ? '<span class="note" style="margin-left:4px">' + esc(r.type) + '은(는) ' + fx + ' 고정</span>' : ''); })() + '</div>' +
+      '</div>';
     if (r.type === '계단') h += stairCard(r);
     if (r.type !== '계단') {
       var di = Math.max(0, Math.min(S.door, r.doors.length - 1)), d = r.doors[di];
@@ -576,6 +599,7 @@ function mainPanel() {
       return '<div class="g"><span class="l" style="flex-basis:160px">' + esc(k) + '</span><div class="optrow">' + btn('c' + (!ng ? ' on' : ''), '양호', function () { upd(function (x) { x.res[k] = 'ok'; }); }) + btn('c' + (ng ? ' bad' : ''), '미흡', function () { upd(function (x) { x.res[k] = 'ng'; }); }) + '</div></div>'; }).join('') + '</section>';
   }
   if (gen && openShown(r)) { openOf(r); h += '<section class="card"><div class="wcgrid">' + chips(OPEN_FORM, r.open, function (k, v) { upd(function (x) { openOf(x)[k] = v; }); }) + '</div></section>'; }
+  if (gen) h += '<div class="card inline">' + '<div class="grp" role="group" aria-label="마감재료"><b>마감재료</b>' + FIN_FORM[0].opts.map(function (o) { var on = r.fin.finish === o, bad = on && o === '기타(확인필요)'; return btn('c' + (bad ? ' bad' : on ? ' on' : ''), o, function () { upd(function (x) { x.fin.finish = o; }); }); }).join('') + '</div>' + '</div>';
   var defs = defsOf(r);
   var nDef = defs.filter(function (x) { return !x.rec; }).length;
   if (r.type !== '외벽') h += '<section class="card defs"><h3>미흡 항목 <small>' + nDef + '건' + (defs.length > nDef ? ' · 권고 ' + (defs.length - nDef) + '건' : '') + '</small></h3>' + (defs.length ? '<ul>' + defs.map(function (x, i) {
@@ -584,9 +608,10 @@ function mainPanel() {
   var hh = here(), idx = hh.indexOf(r), nx = hh[idx + 1];
   var thumbs = r.photos.slice(-4).map(function (p) { var src = localUrls[p.key]; return btn('th', src ? '<img class="th" alt="' + esc(p.name) + '" src="' + esc(src) + '">' : '', function () { openPhoto(r, p); }, ' style="padding:0;border:0"'); }).join('');
   var nRoom = r.photos.filter(function (p) { return !p.sign; }).length;
-  h += '<div class="bar"><label class="shoot">' + CAM + '<span style="display:flex;flex-direction:column;line-height:1.2">사진 촬영<span style="font-size:11px;font-weight:400;color:#DBEAFE">' + esc(photoFileName(r, nRoom + 1, false)) + '</span></span>' +
-    '<input type="file" accept="image/*" capture="environment" data-photo="room" aria-label="사진 촬영"></label>' + thumbs + '<span class="note">' + r.photos.length + '장</span>' +
-    (r.floor === COMMON ? '' : btn('next', '<strong>다음 실 ›</strong><span>' + esc(nx ? nx.name : '새 ' + r.type + ': ' + suggest(r.type)) + '</span>', function () { if (nx) { S.cur = nx.id; S.door = 0; render(); } else addRoom(r.type); })) + '</div></main>';
+  h += '<div class="bar">' + thumbs + (r.photos.length ? btn('hb allp', '전체 사진 ' + r.photos.length + '장 ›', function () { openGallery(r); }) : '<span class="note">사진 0장</span>') +
+    btn('hb dark scanbtn', '실명 글자인식', function () { openScan(r); }, ' style="margin-left:auto"') +
+    '<label class="hb syscam" style="position:relative;overflow:hidden" title="아이패드 기본 카메라로 한 장씩">기본 카메라<input type="file" accept="image/*" capture="environment" data-photo="room" aria-label="기본 카메라로 촬영" style="position:absolute;inset:0;opacity:0"></label>' +
+    btn('shoot', CAM + '<span style="display:flex;flex-direction:column;line-height:1.2;text-align:left">연속 촬영<span style="font-size:11px;font-weight:400;color:#DBEAFE">' + esc(photoFileName(r, nRoom + 1, false)) + '</span></span>', function () { openCam(r); }) + '</div></main>';
   return h;
 }
 function stairCard(r) {
@@ -745,17 +770,60 @@ function openSign(r, key) {
     toast(old + ' → "' + v + '" (가명칭)');
   };
 }
-function openPhoto(r, p) {
+// ───────────── 앱 안 연속 촬영 카메라: 찍으면 바로 저장, [완료]로 돌아감 ─────────────
+var camStream = null;
+function openCam(r) {
+  var ov = document.createElement('div'); ov.id = 'cam'; ov.className = 'cam';
+  ov.innerHTML = '<video id="camV" playsinline autoplay muted></video><div class="camflash" id="camF"></div>' +
+    '<div class="camtop"><b>' + esc(r.bldg + ' ' + (r.floor === COMMON ? '' : r.floor + ' ') + r.name) + '</b><span id="camN"></span></div>' +
+    '<div class="camgrid"></div>' +
+    '<div class="camside"><button type="button" class="camdone" id="camD">완료</button><button type="button" class="camshot" id="camS" aria-label="촬영"><span>촬영</span></button><div class="camthumb" id="camT"></div></div>' +
+    '<div class="camerr" id="camE" style="display:none"></div>';
+  document.body.appendChild(ov);
+  var v = document.getElementById('camV'), taken = 0, busy = false;
+  var info = function () { var n = r.photos.filter(function (p) { return !p.sign; }).length; document.getElementById('camN').textContent = '이번에 ' + taken + '장 · 다음 ' + photoFileName(r, n + 1, false); };
+  info();
+  var close = function () { if (camStream) { camStream.getTracks().forEach(function (t) { t.stop(); }); camStream = null; } ov.remove(); render(); if (taken) toast(taken + '장 저장했습니다'); };
+  document.getElementById('camD').onclick = close;
+  var fail = function (msg) { var e = document.getElementById('camE'); e.style.display = 'flex'; e.innerHTML = '<div><p>' + esc(msg) + '</p><p class="note" style="color:#E5E7EB">아이패드 <b>설정 → Safari(또는 이 앱) → 카메라 → 허용</b>을 확인하세요. 아래 [기본 카메라]로도 찍을 수 있습니다.</p><button type="button" class="hb" id="camX">닫기</button></div>'; document.getElementById('camX').onclick = close; };
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { fail('이 화면에서는 카메라를 쓸 수 없습니다.'); return; }
+  navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 4032 }, height: { ideal: 3024 } } })
+    .then(function (st) { camStream = st; v.srcObject = st; return v.play(); })
+    .catch(function () { fail('카메라를 켜지 못했습니다.'); });
+  document.getElementById('camS').onclick = function () {
+    if (busy || !v.videoWidth) return; busy = true;
+    var c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    var f = document.getElementById('camF'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); // 찰칵 깜빡임
+    c.toBlob(function (blob) {
+      if (!blob) { busy = false; return; }
+      var n = r.photos.filter(function (p) { return !p.sign; }).length;
+      var file = new File([blob], photoFileName(r, n + 1, false), { type: 'image/jpeg' });
+      savePhotos(r, [file], false).then(function (keys) {
+        taken++; info(); var u = localUrls[keys[0]];
+        if (u) document.getElementById('camT').innerHTML = '<img alt="" src="' + esc(u) + '">';
+        busy = false;
+      });
+    }, 'image/jpeg', 0.92);
+  };
+}
+function openGallery(r) {
+  var m = document.getElementById('modal');
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="전체 사진"><div class="box wide gal"><div class="row" style="justify-content:space-between;margin-bottom:6px"><h3 style="margin:0;font-size:16px">' + esc(r.name) + ' · 사진 ' + r.photos.length + '장</h3><button type="button" class="hb dark" id="gc">닫기</button></div><div class="galg">' +
+    r.photos.map(function (p, i) { var u = localUrls[p.key]; return '<button type="button" class="gi" data-gi="' + i + '">' + (u ? '<img alt="" src="' + esc(u) + '">' : '<span>불러올 수 없음</span>') + '<em>' + esc(p.name) + '</em></button>'; }).join('') + '</div></div></div>';
+  document.getElementById('gc').onclick = function () { m.innerHTML = ''; };
+  Array.prototype.forEach.call(m.querySelectorAll('[data-gi]'), function (el) { el.onclick = function () { openPhoto(r, r.photos[+el.getAttribute('data-gi')], true); }; });
+}
+function openPhoto(r, p, fromGallery) {
   var m = document.getElementById('modal'), u = localUrls[p.key];
   m.innerHTML = '<div class="modal" role="dialog" aria-label="사진 보기"><div class="box wide">' +
     '<h3 style="margin:0 0 6px;font-size:14px;word-break:break-all">' + esc(p.name) + '</h3>' +
     (u ? '<img class="sign-img" style="max-height:70vh" alt="" src="' + esc(u) + '">' : '<p class="note">사진을 불러올 수 없습니다.</p>') +
     '<div class="row" style="justify-content:space-between"><button type="button" class="hb red" id="pd">이 사진 삭제</button><button type="button" class="hb dark" id="pc">닫기</button></div></div></div>';
-  document.getElementById('pc').onclick = function () { m.innerHTML = ''; };
+  document.getElementById('pc').onclick = function () { if (fromGallery) openGallery(r); else m.innerHTML = ''; };
   document.getElementById('pd').onclick = function () {
     if (this.dataset.sure !== '1') { this.dataset.sure = '1'; this.textContent = '한 번 더 누르면 삭제'; return; }
     r.photos = r.photos.filter(function (x) { return x.key !== p.key; });
-    idbDel(p.key); markDirty(r.id); m.innerHTML = ''; render(); toast('사진을 삭제했습니다');
+    idbDel(p.key); markDirty(r.id); m.innerHTML = ''; render(); if (fromGallery && r.photos.length) openGallery(r); toast('사진을 삭제했습니다');
   };
 }
 
@@ -769,11 +837,10 @@ function scanPick(raw) { // 한글이 가장 많은 줄 → 그 줄에서 한글
 }
 function openScan(r) {
   var m = document.getElementById('modal');
-  m.innerHTML = '<div class="modal scan" role="dialog" aria-label="실명 글자인식"><form class="box wide" id="scf">' +
-    '<h3 style="margin:0 0 8px;font-size:16px">실명 글자인식 <small style="font-weight:400;color:#4B5563">· 지금 이름: ' + esc(r.name) + '</small></h3>' +
-    '<textarea id="scIn" class="scin" rows="2" placeholder="여기를 한 번 더 탭 → 텍스트 스캔" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>' +
-    '<ol class="scsteps"><li>입력칸을 <b>한 번 더 탭</b></li><li><b>텍스트 스캔</b> 누르기 <span class="note">(메뉴 또는 키보드 위 아이콘)</span></li><li>실명판을 비추고 <b>삽입</b> → 자동으로 이름에 들어갑니다</li></ol>' +
-    '<div class="row" style="justify-content:flex-end"><button type="button" class="hb" id="scc">취소</button></div></form></div>';
+  m.innerHTML = '<div class="modal scan" role="dialog" aria-label="실명 글자인식"><form class="box" id="scf">' +
+    '<div class="row" style="justify-content:space-between;margin-bottom:4px"><b style="font-size:14px">실명 글자인식</b><button type="button" class="hb sm" id="scc">닫기</button></div>' +
+    '<textarea id="scIn" class="scin" rows="2" placeholder="여기를 탭"></textarea>' +
+    '<p class="note" style="margin:2px 0 0">입력칸 탭 → <b>자동 완성</b> → <b>텍스트 스캔</b> → <b>삽입</b> · 자동으로 이름에 들어갑니다</p></form></div>';
   var inp = document.getElementById('scIn');
   inp.focus(); // 버튼을 누른 동작 안에서 바로 커서를 넣어 키보드가 뜨게 함
   var done = false;
@@ -991,9 +1058,11 @@ function exportBackup() {
   });
 }
 // 백업 불러오기: 새 백업(.zip, 여러 개 한 번에 가능)과 예전 백업(.json) 모두
+var lastImported = [];
 function mergeBackup(b) {
   if (!b || b.app !== 'roomcheck') throw new Error('이 앱의 백업 파일이 아닙니다');
   var n = 0;
+  (b.projects || []).forEach(function (p) { if (lastImported.indexOf(p.id) < 0) lastImported.push(p.id); });
   (b.projects || []).forEach(function (p) {
     if (!projectInfo(p.id)) S.projects.push(p);
     var cur = p.id === S.project ? { site: S.site, rooms: S.rooms } : (lsGet('rc:p:' + p.id) || { rooms: {} });
@@ -1016,6 +1085,7 @@ function mergeBackup(b) {
 function importBackup(input) {
   var files = Array.prototype.slice.call(input.files || []); if (!files.length) return;
   exportModal('백업 불러오기', function (prog) {
+    lastImported = [];
     var rooms = 0, photos = 0, chain = Promise.resolve();
     files.forEach(function (f) {
       chain = chain.then(function () {
@@ -1045,7 +1115,14 @@ function importBackup(input) {
         });
       });
     });
-    return chain.then(function () { render(); return { files: [], msg: '실 ' + rooms + '개 · 사진 ' + photos + '장 반영' }; });
+    return chain.then(function () {
+      // 불러온 프로젝트를 바로 열기 (PC에서 처음 불러올 때 빈 화면으로 남던 문제)
+      var go = lastImported.indexOf(S.project) >= 0 ? S.project : lastImported[lastImported.length - 1];
+      if (go) { saveLocal(); switchProject(go); }
+      render();
+      var names = lastImported.map(function (id) { var p = projectInfo(id); return p ? p.name : id; }).join(', ');
+      return { files: [], msg: '프로젝트 ' + names + ' · 실 ' + rooms + '개 · 사진 ' + photos + '장 반영' };
+    });
   });
 }
 // 데이터 표
@@ -1077,7 +1154,7 @@ function scCoef(q) { return q >= 1 ? 1 : q >= 0.75 ? 0.75 : q >= 0.5 ? 0.5 : q >
 function scArea(r) { return r.area === '관리행정영역' ? '지원영역' : r.area; } // B-1-2: 관리행정영역은 지원영역으로 합산
 function scoreRows(b) {
   var rooms = allRooms().filter(function (r) { return r.bldg === b; });
-  rooms.forEach(normDoors);
+  rooms.forEach(normDoors); rooms.forEach(fixArea);
   var gen = rooms.filter(function (r) { return isGeneral(r.type); });
   var rows = [];
   var row = function (grp, item, pts, list, ok, opt) {
@@ -1088,7 +1165,7 @@ function scoreRows(b) {
   var inArea = function (a) { return function (r) { return r.area === a; }; }; // B-1-1: 영역 그대로 (관리행정영역 제외)
   // B-1-1
   var G1 = 'B-1-1|추락방지 조치';
-  var win = gen.filter(function (r) { return r.type !== '계단' && evalOn(r.win); });
+  var win = gen.filter(function (r) { return evalOn(r.win); }); // 계단 포함
   row(G1, '(교수학습영역) 창호추락방지 120cm이하', 3, win.filter(inArea('교수학습영역')), function (r) { return winState(r.win) === 'good'; });
   row(G1, '(지원영역) 창호추락방지 120cm이하', 2, win.filter(inArea('지원영역')), function (r) { return winState(r.win) === 'good'; });
   var openIn = function (a) { return gen.filter(function (r) { return r.area === a && openOn(r); }); };
@@ -1097,20 +1174,24 @@ function scoreRows(b) {
   row(G1, '(공용영역) 공간추락방지 난간', 5, rooms.filter(function (r) { return isRoofLike(r.type); }).concat(openIn('공용영역')), function (r) { return isRoofLike(r.type) ? rooftop(r).rail === '1.2m 이상' : r.open.rail === '1.2m 이상'; }, { note: '옥상·테라스·OPEN구간' });
   // B-1-2 (문 단위)
   var G2 = 'B-1-2|출입문 개폐 방식에 따른 안전대책';
+  // 실 단위: 해당 문이 있는 실만 전체에 넣고, 그 실의 해당 문이 모두 기준을 만족해야 양호
+  var byRoom = function (list, applies, ok) { return { list: list.filter(function (r) { return r.doors.some(applies); }), ok: function (r) { return r.doors.filter(applies).every(ok); } }; };
   SC_AREAS.forEach(function (a) {
-    var doors = [];
-    gen.filter(function (r) { return r.type !== '계단' && scArea(r) === a; }).forEach(function (r) { r.doors.forEach(function (d) { doors.push(d); }); });
-    var opened = doors.filter(function (d) { return d.shape !== '문없음'; }), hinged = doors.filter(function (d) { return d.shape === '여닫이'; });
-    row(G2, '(' + a + ') 문 손끼임', 2, opened, function (d) { return d.pinch !== '없음'; });
-    row(G2, '(' + a + ') 여닫이문 시인성', 0.5, hinged.filter(function (d) { return d.floorVis !== '해당없음'; }), function (d) { return d.floorVis === '적용'; });
-    row(G2, '(' + a + ') 여닫이문 시창', 0.5, hinged, function (d) { return d.sight === '적용'; });
-    row(G2, '(' + a + ') 문 돌출물', -1, doors, function (d) { return d.protrude === '있음' || d.step === '있음'; });
+    var rs = gen.filter(function (r) { return r.type !== '계단' && scArea(r) === a; });
+    var pin = byRoom(rs, function (d) { return d.shape !== '문없음'; }, function (d) { return d.pinch !== '없음'; });
+    var vis = byRoom(rs, function (d) { return d.shape === '여닫이' && d.floorVis !== '해당없음'; }, function (d) { return d.floorVis === '적용'; });
+    var sig = byRoom(rs, function (d) { return d.shape === '여닫이'; }, function (d) { return d.sight === '적용'; });
+    row(G2, '(' + a + ') 문 손끼임', 2, pin.list, pin.ok);
+    row(G2, '(' + a + ') 여닫이문 시인성', 0.5, vis.list, vis.ok);
+    row(G2, '(' + a + ') 여닫이문 시창', 0.5, sig.list, sig.ok);
+    var realDoor = function (d) { return d.shape !== '문없음'; };
+    row(G2, '(' + a + ') 문 돌출물', -1, rs.filter(function (r) { return r.doors.some(realDoor); }), function (r) { return r.doors.filter(realDoor).some(function (d) { return d.protrude === '있음' || d.step === '있음'; }); });
   });
   // B-1-3
   var G3 = 'B-1-3|시설물 돌출부에 대한 안전조치';
   var cor = gen.filter(function (r) { return r.type === '복도'; });
   row(G3, '모서리 완충', 4, cor.filter(function (r) { return !edgeOf(r.cor).na; }), function (r) { return !edgeOf(r.cor).bad.length; });
-  row(G3, '계단, 복도 단차', 3, cor.filter(function (r) { return r.cor.step && r.cor.step !== '해당없음'; }), function (r) { return r.cor.step === '단차(시인성조치)'; });
+  row(G3, '계단, 복도 단차', 3, cor, function (r) { return r.cor.step !== '단차(시인성조치X)'; }); // 해당없음·시인성조치 = 양호
   row(G3, '복도 유효폭(양쪽 2.4m, 편측 1.8m)', -2, cor, function (r) { return (r.cor.type === '편복도' && r.cor.wSide === '1.8m 미만') || (r.cor.type === '중복도' && r.cor.wMid === '2.4m 미만'); });
   // B-1-4
   var G4 = 'B-1-4|계단설치 기준';
@@ -1150,6 +1231,16 @@ function scoreRows(b) {
     x.score = x.pts < 0 ? (x.hit ? x.pts : 0) : x.bonus ? (x.ratio >= 1 ? x.pts : 0) : Math.round(x.pts * scCoef(x.ratio) * 100) / 100;
   });
   return { rows: rows, glass: glassReport(rooms), fin: gen.filter(function (r) { return r.type !== '계단' || true; }) };
+}
+function glassDetail(g) {
+  if (!g.rows.length) return '<span class="note">유리가 있는 문이 없습니다.</span>';
+  var gl = { S: 'S (강화+필름)', A: 'A', '미흡': '미흡 (일반유리, 필름 없음)' };
+  return '<table class="gd"><thead><tr><th>층</th><th>유리 있는 문</th><th>S</th><th>A</th><th>미흡</th><th>문 목록</th></tr></thead><tbody>' +
+    g.rows.map(function (f) {
+      return '<tr><td><b>' + esc(f.floor) + '</b></td><td>' + f.total + '</td><td>' + f.S + '</td><td>' + f.A + '</td><td>' + f.N + '</td><td class="gdl">' +
+        (f.list || []).map(function (x) { return '<span class="gdi g-' + (x.g === '미흡' ? 'n' : x.g) + '">' + esc(x.room) + ' · ' + esc(x.glass) + (x.film === '적용' ? '+필름' : '') + '</span>'; }).join('') + '</td></tr>';
+    }).join('') +
+    '<tr class="gdt"><td>합계</td><td>' + (g.tS + g.tA + g.tN) + '</td><td>' + g.tS + '</td><td>' + g.tA + '</td><td>' + g.tN + '</td><td class="note">문 하나를 1개로 셈 · 개별실·복도·화장실·도서관·체육관 등 모든 실의 출입문</td></tr></tbody></table>';
 }
 function scorePage() {
   var bl = S.site.bldgList;
@@ -1203,7 +1294,7 @@ function scorePage() {
     '</div>' +
     '<div style="overflow:auto"><table class="st"><thead><tr><th style="width:150px">구분</th><th style="width:56px">배점</th><th style="width:380px">항목</th><th style="width:60px">전체</th><th style="width:60px">해당</th><th style="width:88px">평점</th></tr></thead><tbody>' + body +
     '<tr class="tot"><th colspan="5">' + esc(b) + ' 합계 (입력된 항목 기준)</th><td class="sv">' + fmt(total) + '</td></tr></tbody></table></div>' +
-    '<p class="note">빨간 글씨 항목은 아직 입력 화면에 없는 항목입니다. 전체 = 평가한 개소(문 항목은 문 개수, 불법촬영 카드는 층 수), 해당 = 기준에 맞는 개소(감점 항목은 위반 개소).</p></div>';
+    '<p class="note">빨간 글씨 항목은 아직 입력 화면에 없는 항목입니다. 전체 = 평가한 개소(B-1-2는 실 개수, 불법촬영 카드는 층 수), 해당 = 기준에 맞는 개소(감점 항목은 위반 개소).</p></div>';
 }
 function resultPage() {
   var h = '<div class="page"><div class="row" style="margin-bottom:8px"><h2 style="margin:0;font-size:17px">현장심사 결과</h2><span class="note">대분류별 미흡실</span>' + btn('hb', '입력 화면으로', function () { S.view = 'input'; render(); }, ' style="margin-left:auto"') + '</div>';
@@ -1237,7 +1328,7 @@ function reportGroups(rooms) {
       if (open && d.pinch === '없음') add(1, 0, r, dn);
       if (d.shape === '여닫이' && d.floorVis === '미적용') add(1, 1, r, dn);
       if (d.shape === '여닫이' && d.sight === '미적용') add(1, 2, r, dn);
-      var bump = []; if (d.step === '있음') bump.push('단차'); if (d.protrude === '있음') bump.push('돌출물');
+      var bump = []; if (d.shape !== '문없음') { if (d.step === '있음') bump.push('단차'); if (d.protrude === '있음') bump.push('돌출물'); }
       if (bump.length) add(1, 3, r, (dn ? dn + ' · ' : '') + bump.join(', '));
       var gg = glassGrade(d);
       if (gg && gg !== 'S') add(6, 0, r, (dn ? dn + ' · ' : '') + (d.glass === '강화유리' ? '비산방지필름 미적용' : (d.film === '적용' ? '일반유리' : '일반유리, 비산방지필름 미적용')));
