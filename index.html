@@ -16,7 +16,7 @@
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
-body{font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;color:#1F2937;background:#1B2A41;font-size:14px;-webkit-text-size-adjust:100%}
+body{font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;color:#1F2937;background:#F4F6F9;font-size:14px;-webkit-text-size-adjust:100%}
 button,input,select{font-family:inherit}
 button,label,.room,.c,.lb,.tab{touch-action:manipulation;-webkit-user-select:none;user-select:none}
 button{cursor:pointer}
@@ -45,7 +45,7 @@ table.st thead th{background:#4B5563;color:#fff;font-weight:700;text-align:cente
 .st .sv{text-align:center;background:#ECFCCB;font-weight:700}.st .sv.na{font-weight:400;color:#166534}.st .sv.na.neg{color:#DC2626}
 .st .tot th{text-align:right;background:#F8FAFC}.st .tot .sv{background:#FEF9C3;color:#B91C1C;font-size:14px}
 .wl{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:#374151}.wl input{width:90px;height:32px;border:1px solid #CBD5E1;border-radius:6px;padding:0 8px;font-size:15px;text-align:right}.wl i{font-style:normal;color:#6B7280}
-.modal.scan{inset:auto;left:0;right:0;top:0;height:var(--app-h,100%);background:transparent;pointer-events:none;align-items:flex-end;justify-content:flex-end;padding:0 calc(12px + env(safe-area-inset-right)) 76px 0}
+.modal.scan{inset:auto;left:0;right:0;top:var(--vv-top,0px);height:var(--vv-h,100%);background:transparent;pointer-events:none;align-items:flex-end;justify-content:flex-end;padding:0 calc(12px + env(safe-area-inset-right)) 12px 0}
 .modal.scan .box{pointer-events:auto;width:340px;max-width:92vw;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.28);border:1px solid #CBD5E1}
 .hb.scanbtn{min-height:40px}.scin{width:100%;box-sizing:border-box;font-family:inherit;font-size:18px;padding:6px 10px;margin:2px 0 2px;resize:none;border:2px solid #1D4ED8!important;border-radius:10px!important}
 .scsteps{margin:4px 0 10px;padding-left:20px;font-size:14px;color:#374151;line-height:1.7}
@@ -83,6 +83,7 @@ table.gd{border-collapse:collapse;width:100%;font-size:11.5px;background:#fff}ta
 .lb{min-height:26px;padding:0 11px;border-radius:6px;border:1px solid #CBD5E1;background:#fff;color:#374151;font-size:13px}
 .c.dis{display:inline-flex;align-items:center;opacity:.35;background:#F3F4F6;cursor:not-allowed;text-decoration:line-through}
 .add.delf{border-color:#FCA5A5;color:#B91C1C;background:#fff}
+.schsel{margin-left:auto;display:inline-flex;align-items:center;gap:4px}.schsel>span{font-size:11px;font-weight:700;color:#4B5563;margin-right:2px}.schsel{flex-wrap:wrap;justify-content:flex-end}.schdd{display:inline-block;height:26px;border:1px solid #1B2A41;border-radius:6px;font-size:12.5px;font-weight:700;color:#1B2A41;background:#fff;padding:0 6px}.schsel .lb{font-size:11.5px;padding:0 6px;letter-spacing:-.2px}.schsel{gap:3px}
 .lb.wall{border-style:dashed;font-size:12px;min-height:24px}.lb.wall.on{border-style:solid}
 .lb.on{background:#1B2A41;color:#fff;border-color:#1B2A41;font-weight:700}
 .add{min-height:26px;padding:0 10px;border-radius:6px;border:1px dashed #64748B;background:#F8FAFC;color:#1B2A41;font-size:12px}
@@ -383,10 +384,14 @@ var S = {
 };
 var db = null, assets = null, downloads = null, user = null, unsub = null, unsubProj = null;
 
-function lsGet(k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+function lsGet(k) { if (saveT && k.indexOf('rc:') === 0) flushSave(); try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
-function saveLocal() {
-  if (!S.project) return;
+// 저장은 0.3초 모아서 한 번에 (연속으로 누를 때 기기 부담 줄이기) · 앱 전환/닫기/다른 데이터 읽기 전에는 즉시 저장
+var saveT = null;
+function saveLocal() { if (!S.project) return; clearTimeout(saveT); saveT = setTimeout(saveNow, 300); }
+function flushSave() { if (saveT) { clearTimeout(saveT); saveNow(); } }
+function saveNow() {
+  saveT = null; if (!S.project) return;
   lsSet('rc:p:' + S.project, { site: S.site, rooms: S.rooms, pending: S.pending, pendingSite: S.pendingSite });
   lsSet('rc:last', { project: S.project, bldg: S.bldg, floor: S.floor });
 }
@@ -402,6 +407,14 @@ function loadLocal(p) {
   Object.keys(S.rooms).forEach(function (id) { fixArea(S.rooms[id]); });
   Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.cor && r.cor.corner == null) r.cor.corner = '양호'; if (r.cor && r.cor.step === '없음') r.cor.step = '해당없음'; if (r.cor && r.cor.step === '있음') r.cor.step = '단차(시인성조치X)'; if (isWc(r.type) && !r.wc) { r.wc = newWc(); if (!r.doors || !r.doors.length) r.doors = [newDoor()]; } }); S.pending = d.pending || {}; S.pendingSite = !!d.pendingSite;
 }
+// 층 목록은 동마다 따로 (예전 데이터: 공통 층 목록을 이미 있던 동에 그대로 복사)
+function flOf(b) {
+  var st = S.site; if (!st.floors) st.floors = {};
+  if (!st.floors[b]) st.floors[b] = { up: (st.up && st.up.length ? st.up.slice() : ['1층']), down: (st.down || []).slice(), roof: !!st.roof };
+  return st.floors[b];
+}
+function floorOk(b, f) { var F = flOf(b); return f === COMMON || F.up.indexOf(f) >= 0 || F.down.indexOf(f) >= 0 || (F.roof && f === ROOF); }
+function firstFloor(b) { var F = flOf(b); return F.up[0] || '1층'; }
 function defaultSite() { return { bldgList: [], up: ['1층'], down: [], school: '중·고등학교' }; }
 function pendingCount() { return 0; }
 
@@ -526,18 +539,18 @@ function topbar() {
     }).join('') + '</nav>' : '') + '</header>' + inst;
 }
 function locbar() {
-  var s = S.site;
-  var b = s.bldgList.map(function (x) { return btn('lb' + (x === S.bldg ? ' on' : ''), esc(x), function () { goto(x, S.floor || s.up[0]); }); }).join('');
+  var st = S.site, s = S.bldg ? flOf(S.bldg) : { up: ['1층'], down: [], roof: false };
+  var b = st.bldgList.map(function (x) { return btn('lb' + (x === S.bldg ? ' on' : ''), esc(x), function () { goto(x, S.floor && floorOk(x, S.floor) ? S.floor : firstFloor(x)); }); }).join('');
   var fb = function (f) { return btn('lb' + (f === S.floor ? ' on' : ''), esc(f), function () { if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }); };
   var wall = S.bldg ? btn('lb wall' + (S.floor === COMMON ? ' on' : ''), esc(S.bldg) + ' 외벽', function () { goto(S.bldg, COMMON); }) : '';
   return '<div class="loc" style="align-items:stretch"><div style="display:flex;flex-direction:column;gap:3px"><b class="lbl" style="font-size:12px">지금 위치</b>' +
     '<div class="row" role="group" aria-label="동">' + b + btn('add', '+ 동 추가', openNewBldg) + (S.bldg ? btn('add delf', '− ' + esc(S.bldg) + ' 삭제', function () { S.confirmDelBldg = S.bldg; S.confirmDelFloor = null; S.confirmDelAll = false; S.confirmDel = false; render(); }) : '') + '</div>' +
     (wall ? '<div class="row">' + wall + '<span class="note" style="font-size:11px">동 전체 1회 평가</span></div>' : '') + '</div>' +
-    '<span style="width:1px;background:#D1D5DB"></span><div style="display:flex;flex-direction:column;gap:2px;justify-content:center">' +
-    '<div class="row"><span class="fl">지하</span>' + s.down.map(fb).join('') + (S.floor === s.down[s.down.length - 1] ? delFloorBtn() : '') + btn('add', '+ 지하층 추가', function () { var f = 'B' + (s.down.length + 1); s.down.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) + '</div>' +
+    '<span style="width:1px;background:#D1D5DB"></span><div style="display:flex;flex-direction:column;gap:2px;justify-content:center;flex:1 1 0;min-width:0">' +
+    '<div class="row"><span class="fl">지하</span>' + s.down.map(fb).join('') + (S.floor === s.down[s.down.length - 1] ? delFloorBtn() : '') + btn('add', '+ 지하층 추가', function () { var f = 'B' + (s.down.length + 1); s.down.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) + schoolSel() + '</div>' +
     '<div class="row"><span class="fl">지상</span>' + s.up.map(fb).join('') + (s.roof ? fb(ROOF) : '') + ((S.floor === ROOF && s.roof) || (S.floor === s.up[s.up.length - 1] && s.up.length > 1) ? delFloorBtn() : '') + btn('add', '+ 층 추가', function () { var f = (s.up.length + 1) + '층'; s.up.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) +
       (s.roof ? '' : btn('add', '+ 옥상층 추가', function () { s.roof = true; markSite(); if (S.bldg) goto(S.bldg, ROOF); else { S.floor = ROOF; render(); } })) + '</div></div>' +
-    (S.bldg ? btn('hb blue', '현장심사 결과보기', function () { S.view = 'result'; render(); }, ' style="margin-left:auto;align-self:center"') : '') + '</div>';
+    (S.bldg ? btn('hb blue', '현장심사 결과보기', function () { S.view = 'result'; render(); }, ' style="align-self:center"') : '') + '</div>';
 }
 function aside() {
   var h = here();
@@ -548,6 +561,7 @@ function aside() {
       function () { if (S.pick) { pickFrom(r); return; } S.cur = r.id; S.door = 0; S.confirmDel = false; render(); });
   }).join('');
   return '<aside><div style="display:flex;align-items:center;gap:6px;padding:6px 8px 4px 12px;font-size:13px;font-weight:700;color:#4B5563"><span style="flex:1 1 auto">' + esc(S.floor === COMMON ? S.bldg + ' 외벽 (동 전체)' : S.bldg + ' ' + S.floor + ' 입력한 실') + ' (' + h.length + ')</span>' +
+    (h.length && S.floor !== COMMON && S.floor !== ROOF ? btn('hb sm', '층 복사', openCopyFloor) : '') +
     (h.length ? btn('hb red sm', '전체실 삭제', function () { S.confirmDelAll = true; S.confirmDel = false; S.pick = null; render(); }) : '') +
     (cur() ? btn('hb red sm', '실 삭제', function () { S.confirmDel = true; S.confirmDelAll = false; S.pick = null; render(); }) : '') + '</div>' +
     '<div class="list">' + (list || '<p class="note" style="padding:12px">아직 입력한 실이 없습니다.</p>') + '</div>' +
@@ -615,9 +629,8 @@ function mainPanel() {
   return h;
 }
 function stairCard(r) {
-  var s = r.stair, sc = S.site.school || '중·고등학교';
-  var h = '<section class="card"><div class="row"><h3 style="margin:0">계단 <small>출입문은 평가하지 않음</small></h3><span style="margin-left:auto;font-size:11px;color:#4B5563">단높이 기준</span>' +
-    ['초등학교', '중·고등학교'].map(function (x) { return btn('c' + (sc === x ? ' on' : ''), x, function () { S.site.school = x; markSite(); render(); }); }).join('') + '</div><div class="grid2">';
+  var s = r.stair, sc = schoolOf(r.bldg);
+  var h = '<section class="card"><div class="row"><h3 style="margin:0">계단 <small>출입문은 평가하지 않음 · 단높이 기준: ' + esc(sc) + '</small></h3></div><div class="grid2">';
   STAIR_FORM.forEach(function (g) {
     h += '<div class="g"><span class="l"' + (g.compact ? ' style="flex-basis:36px"' : '') + '>' + esc(g.label) + (g.sub ? '<small>' + esc(g.sub(sc)) + '</small>' : '') + '</span><div class="opts">' +
       g.rows.filter(function (w) { return !w.when || w.when(s); }).map(function (w) {
@@ -633,6 +646,16 @@ function pickBar() {
   return '<div class="pickbar" role="status"><span><b>' + esc(t.bldg + ' ' + t.floor + ' ' + t.name) + '</b>에 가져올 실을 <b>왼쪽 목록에서 누르세요</b> · 위에서 다른 동·층으로 옮겨 골라도 됩니다</span>' +
     (away ? btn('hb', '← ' + esc(t.name) + '(으)로 돌아가기', function () { backTo(t); }) : '') + btn('hb', '취소', function () { S.pick = null; backTo(t); }) + '</div>';
 }
+// 평가기준 학교급 (공통) · 유치원·대학교·기타시설은 버튼만 먼저 두고 기준은 추후 반영 (지금은 중·고등학교 기준 적용)
+var SCHOOLS = ['유치원', '초등학교', '중·고등학교', '대학교', '기타시설(도서관)', '기타시설(수련원)'];
+// 동마다 따로 저장 (정하지 않은 동은 예전 공통값, 그것도 없으면 중·고등학교)
+function schoolOf(b) { var m = S.site.schoolBy || {}; return m[b] || S.site.school || '중·고등학교'; }
+function setSchool(b, x) { if (!S.site.schoolBy) S.site.schoolBy = {}; S.site.schoolBy[b] = x; markSite(); render(); toast(b + ' 평가기준: ' + x); }
+function schoolSel() {
+  if (!S.bldg) return '';
+  var sc = schoolOf(S.bldg);
+  return '<span class="schsel" role="group" aria-label="평가기준 학교급"><span>' + esc(S.bldg) + ' 평가기준</span>' + '<select class="schdd" data-school="1" aria-label="평가기준">' + SCHOOLS.map(function (x) { return '<option' + (sc === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></span>';
+}
 function delBldgBar() {
   var b = S.confirmDelBldg; if (!b) return '';
   var rs = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (r) { return r.bldg === b; }), np = 0;
@@ -643,29 +666,74 @@ function delBldgBar() {
 function delBldg(b) {
   var n = 0;
   Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.bldg !== b) return; r.photos.forEach(function (p) { if (p.key) idbDel(p.key); }); delete S.rooms[id]; n++; });
-  S.site.bldgList = S.site.bldgList.filter(function (x) { return x !== b; });
+  S.site.bldgList = S.site.bldgList.filter(function (x) { return x !== b; }); if (S.site.schoolBy) delete S.site.schoolBy[b];
   S.confirmDelBldg = null; touchData(); markSite();
   toast(b + ' 삭제됨' + (n ? ' · 실 ' + n + '개 함께 삭제' : ''));
   var nx = S.site.bldgList[0];
-  if (nx) goto(nx, S.floor === COMMON ? (S.site.up[0] || '1층') : S.floor); else { S.bldg = null; S.cur = null; saveLocal(); render(); }
+  if (S.site.floors) delete S.site.floors[b];
+  if (nx) goto(nx, S.floor && floorOk(nx, S.floor) ? S.floor : firstFloor(nx)); else { S.bldg = null; S.cur = null; saveLocal(); render(); }
 }
 function delFloorBtn() { return btn('add delf', '− ' + esc(S.floor) + ' 삭제', function () { S.confirmDelFloor = S.floor; S.confirmDelAll = false; S.confirmDel = false; render(); }); }
 function delFloorBar() {
   var f = S.confirmDelFloor; if (!f) return '';
-  var rs = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (r) { return r.floor === f; }), np = 0;
+  var rs = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (r) { return r.floor === f && r.bldg === S.bldg; }), np = 0;
   rs.forEach(function (r) { np += r.photos.length; });
-  return '<div class="confirm" role="alert"><span><strong>' + esc(f) + '</strong>을(를) 삭제할까요? 층은 모든 동이 함께 쓰므로 <strong>모든 동의 ' + esc(f) + '</strong> 실 ' + rs.length + '개와 사진 ' + np + '장이 함께 지워집니다. 되돌릴 수 없습니다.</span>' +
+  return '<div class="confirm" role="alert"><span><strong>' + esc(f) + '</strong>을(를) 삭제할까요? <strong>' + esc(S.bldg + ' ' + f) + '</strong>의 실 ' + rs.length + '개와 사진 ' + np + '장이 함께 지워집니다. 되돌릴 수 없습니다.</span>' +
     btn('hb', '층 삭제', function () { delFloor(f); }, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDelFloor = null; render(); }) + '</div>';
 }
 function delFloor(f) {
-  var s = S.site, n = 0;
-  Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.floor !== f) return; r.photos.forEach(function (p) { if (p.key) idbDel(p.key); }); delete S.rooms[id]; n++; });
+  var s = flOf(S.bldg), n = 0;
+  Object.keys(S.rooms).forEach(function (id) { var r = S.rooms[id]; if (r.floor !== f || r.bldg !== S.bldg) return; r.photos.forEach(function (p) { if (p.key) idbDel(p.key); }); delete S.rooms[id]; n++; });
   if (f === ROOF) s.roof = false;
   else if (s.up[s.up.length - 1] === f) s.up.pop();
   else if (s.down[s.down.length - 1] === f) s.down.pop();
   S.confirmDelFloor = null; touchData(); markSite();
   toast(f + ' 삭제됨' + (n ? ' · 실 ' + n + '개 함께 삭제' : ''));
   goto(S.bldg, s.up[s.up.length - 1] || '1층');
+}
+// 층 복사 · 지금 층의 실(평가값 포함, 사진 제외)을 같은 동의 다른 층으로 복사 (기숙사 등 같은 구성의 층)
+function isBlankRoom(r) {
+  if (r.photos && r.photos.length) return false;
+  var f = makeRoom(r.bldg, r.floor, r.name, r.type, r.order); if (r.wl) wallLen(f); if (r.top) rooftop(f); if (r.open) openOf(f);
+  var strip = function (x) { var y = clone(x); delete y.id; delete y.order; delete y.updatedAt; delete y.name; delete y.photos; return JSON.stringify(y); };
+  return strip(f) === strip(r);
+}
+function copyFloorTo(src, f) {
+  var s = flOf(S.bldg), tgt = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (r) { return r.bldg === S.bldg && r.floor === f; });
+  // 대상 층에 자동으로 생긴 빈 복도 등 손대지 않은 실은 지우고 복사본으로 대체
+  tgt.forEach(function (r) { if (isBlankRoom(r)) delete S.rooms[r.id]; });
+  var base = Date.now();
+  src.forEach(function (r, i) {
+    var c = clone(r); c.id = rid(); c.floor = f; c.photos = []; c.order = base + i; c.updatedAt = new Date().toISOString();
+    if (c.win && r.win && r.win.ground === newWin(r.floor).ground) c.win.ground = newWin(f).ground;
+    S.rooms[c.id] = c;
+  });
+  if (s.up.indexOf(f) < 0 && s.down.indexOf(f) < 0) s.up.push(f);
+}
+function openCopyFloor() {
+  var src = here(); if (!src.length) return;
+  var s = flOf(S.bldg), cnt = function (f) { return Object.keys(S.rooms).filter(function (k) { var r = S.rooms[k]; return r.bldg === S.bldg && r.floor === f && !isBlankRoom(r); }).length; };
+  var opts = s.down.concat(s.up).filter(function (f) { return f !== S.floor; });
+  var m = document.getElementById('modal');
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="층 복사"><form class="box" id="cf"><h3 style="margin:0 0 4px;font-size:16px">' + esc(S.bldg + ' ' + S.floor) + ' 복사</h3>' +
+    '<p class="note" style="margin:0 0 10px">실 ' + src.length + '개의 이름·평가값을 복사합니다. 사진은 복사하지 않습니다.</p>' +
+    (opts.length ? '<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:4px">기존 층에 복사</div><div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-bottom:10px">' +
+      opts.map(function (f) { var n = cnt(f); return '<label style="display:flex;align-items:center;gap:5px;font-size:14px"><input type="checkbox" data-cf="' + esc(f) + '" style="width:18px;height:18px;margin:0">' + esc(f) + (n ? ' <span class="note">(기존 실 ' + n + '개 유지 + 추가)</span>' : '') + '</label>'; }).join('') + '</div>' : '') +
+    '<label style="font-size:13px;font-weight:700;color:#374151;display:flex;align-items:center;gap:8px">새 층 추가 <select id="cfn" style="height:34px;font-size:14px">' +
+      [0,1,2,3,4,5,6,7,8,9,10].map(function (k) { return '<option value="' + k + '"' + (k === (opts.length ? 0 : 1) ? ' selected' : '') + '>' + (k ? k + '개 (' + (s.up.length + 1) + '층' + (k > 1 ? '~' + (s.up.length + k) + '층' : '') + ')' : '없음') + '</option>'; }).join('') + '</select></label>' +
+    '<div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="hb" id="cfc">취소</button><button type="submit" class="hb blue">복사</button></div></form></div>';
+  document.getElementById('cfc').onclick = function () { m.innerHTML = ''; };
+  document.getElementById('cf').onsubmit = function (e) {
+    e.preventDefault();
+    var fs = Array.prototype.filter.call(m.querySelectorAll('[data-cf]'), function (el) { return el.checked; }).map(function (el) { return el.getAttribute('data-cf'); });
+    var k = +document.getElementById('cfn').value, n0 = s.up.length;
+    for (var i = 1; i <= k; i++) fs.push((n0 + i) + '층');
+    if (!fs.length) { toast('복사할 층을 고르세요'); return; }
+    m.innerHTML = '';
+    fs.forEach(function (f) { copyFloorTo(src, f); });
+    touchData(); markSite(); saveLocal();
+    toast(S.floor + ' → ' + fs.join(', ') + ' 복사 완료 (실 ' + src.length + '개씩)', 3200); render();
+  };
 }
 function delAllBar() {
   if (!S.confirmDelAll) return '';
@@ -729,46 +797,7 @@ function onPhotos(input) {
   var r = cur(); if (!r || !input.files || !input.files.length) return;
   var files = Array.prototype.slice.call(input.files);
   input.value = '';
-  if (input.getAttribute('data-photo') === 'sign') {
-    var f0 = files[0];
-    savePhotos(r, [f0], true).then(function () {
-      toast(ocrWorkerP ? '글자 인식 중…' : '글자 인식 준비 중… (처음 한 번은 인터넷 필요)', 60000);
-      return runOcr(f0);
-    }).then(function (name) {
-      if (name) { r.name = name; r.ocr = true; markDirty(r.id); render(); toast('인식: ' + name + ' · 다르면 이름 칸에서 고치세요', 3500); }
-      else toast('글자를 찾지 못했습니다 · 이름 칸에 직접 입력하세요', 3500);
-    }).catch(function (e) { toast(((e && e.message) || '글자 인식 실패') + ' · 이름 칸에 직접 입력하세요', 4000); });
-    return;
-  }
   savePhotos(r, files, false).then(function () { toast('저장: ' + r.photos[r.photos.length - 1].name); });
-}
-function openSign(r, key) {
-  var m = document.getElementById('modal');
-  m.innerHTML = '<div class="modal" role="dialog" aria-label="실명 글자인식"><form class="box wide" id="sf">' +
-    '<h3 style="margin:0 0 6px;font-size:16px">실명 글자인식 <small style="font-weight:400;color:#4B5563">· 지금 이름: ' + esc(r.name) + '</small></h3>' +
-    '<div id="simg">' + (key && localUrls[key] ? '<img class="sign-img" alt="실명판 사진" src="' + esc(localUrls[key]) + '">' : '') + '</div>' +
-    '<p class="note" style="margin:0 0 4px">사진 속 글자를 <b>길게 눌러 복사</b>한 뒤 아래 칸에 붙여 넣으세요. 또는 입력칸을 탭해서 나오는 <b>텍스트 스캔</b>으로 바로 읽어도 됩니다. 찍은 사진은 이 실에 저장됩니다.</p>' +
-    '<input id="si" placeholder="실명 (예: 과학실)" autocomplete="off" autocorrect="off" autocapitalize="off" enterkeyhint="done">' +
-    '<div class="row" style="justify-content:space-between"><label class="hb" style="position:relative;overflow:hidden">' + CAM + '다시 찍기<input type="file" accept="image/*" capture="environment" id="sfile" style="position:absolute;inset:0;opacity:0"></label>' +
-    '<span class="row"><button type="button" class="hb" id="sc">취소</button><button type="submit" class="hb blue">이 이름으로 바꾸기</button></span></div></form></div>';
-  var i = document.getElementById('si'); if (!key) i.focus();
-  document.getElementById('sc').onclick = function () { m.innerHTML = ''; };
-  document.getElementById('sfile').onchange = function (e) {
-    var fs = Array.prototype.slice.call(e.target.files || []); if (!fs.length) return;
-    savePhotos(r, fs, true).then(function (keys) {
-      var u = localUrls[keys[0]];
-      document.getElementById('simg').innerHTML = u ? '<img class="sign-img" alt="실명판 사진" src="' + esc(u) + '">' : '';
-      toast('실명판 사진 저장');
-    });
-  };
-  document.getElementById('sf').onsubmit = function (e) {
-    e.preventDefault();
-    var v = i.value.replace(/\s+/g, ' ').trim();
-    m.innerHTML = '';
-    if (!v || v === r.name) return;
-    var old = r.name; r.name = v; r.ocr = true; markDirty(r.id); render();
-    toast(old + ' → "' + v + '" (가명칭)');
-  };
 }
 // ───────────── 앱 안 연속 촬영 카메라: 찍으면 바로 저장, [완료]로 돌아감 ─────────────
 var camStream = null;
@@ -854,44 +883,13 @@ function openScan(r) {
   document.getElementById('scc').onclick = function () { clearTimeout(scanTimer); m.innerHTML = ''; };
 }
 
-// ───────────── (예전) 실명 글자 인식 (Tesseract.js · 처음 한 번 인터넷으로 받은 뒤 기기에 보관) ─────────────
-var OCR_JS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-var ocrWorkerP = null;
-function loadScript(src) {
-  return new Promise(function (res, rej) {
-    if (window.Tesseract) { res(); return; }
-    var el = document.createElement('script'); el.src = src; el.onload = function () { res(); };
-    el.onerror = function () { el.remove(); rej(new Error('글자 인식 엔진을 받지 못했습니다(인터넷 확인)')); };
-    document.head.appendChild(el);
-  });
-}
-function ocrWorker() {
-  if (!ocrWorkerP) ocrWorkerP = loadScript(OCR_JS).then(function () { return Tesseract.createWorker('kor'); }).catch(function (e) { ocrWorkerP = null; throw e; });
-  return ocrWorkerP;
-}
-function ocrImage(blob) { // 크기 줄이고 흑백·대비 강화
-  return new Promise(function (res, rej) {
-    var img = new Image(), u = URL.createObjectURL(blob);
-    img.onload = function () {
-      var sc = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement('canvas');
-      c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc);
-      var x = c.getContext('2d'); try { x.filter = 'grayscale(1) contrast(1.4)'; } catch (e) {}
-      x.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c);
-    };
-    img.onerror = function () { URL.revokeObjectURL(u); rej(new Error('사진을 읽지 못했습니다')); };
-    img.src = u;
-  });
-}
+// 실명판 글자 중 한글이 가장 많은 줄 고르기 (텍스트 스캔 결과 정리용)
 function ocrPick(text) { // 한글이 가장 많은 줄을 실명으로
   var lines = String(text || '').split(/\n+/).map(function (l) { return l.replace(/[^0-9A-Za-z가-힣()\-·\s]/g, '').replace(/\s+/g, ' ').trim(); })
     .filter(function (l) { return /[가-힣]/.test(l); });
   var hk = function (l) { return (l.match(/[가-힣]/g) || []).length; };
   lines.sort(function (a, b) { return hk(b) - hk(a); });
   return lines[0] || '';
-}
-function runOcr(file) {
-  var timeout = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('글자 인식 시간이 초과되었습니다')); }, 90000); });
-  return Promise.race([timeout, Promise.all([ocrWorker(), ocrImage(file)]).then(function (a) { return a[0].recognize(a[1]); }).then(function (out) { return ocrPick(out && out.data && out.data.text); })]);
 }
 
 // ───────────── ZIP (무압축, 외부 라이브러리 없음) ─────────────
@@ -1075,8 +1073,18 @@ function mergeBackup(b) {
       }
     });
     if (!cur.site && inc.site) cur.site = inc.site;
-    else if (cur.site && inc.site) { if (inc.site.roof) cur.site.roof = true; }
-    if (cur.site && inc.site) inc.site.bldgList.forEach(function (x) { if (cur.site.bldgList.indexOf(x) < 0) cur.site.bldgList.push(x); });
+    else if (cur.site && inc.site) { if (inc.site.roof) cur.site.roof = true; if (inc.site.schoolBy) { cur.site.schoolBy = cur.site.schoolBy || {}; for (var sb in inc.site.schoolBy) if (!cur.site.schoolBy[sb]) cur.site.schoolBy[sb] = inc.site.schoolBy[sb]; } }
+    if (cur.site && inc.site && cur.site !== inc.site) {
+      var legacy = function (st) { return { up: (st.up && st.up.length ? st.up.slice() : ['1층']), down: (st.down || []).slice(), roof: !!st.roof }; };
+      cur.site.floors = cur.site.floors || {}; cur.site.bldgList.forEach(function (x) { if (!cur.site.floors[x]) cur.site.floors[x] = legacy(cur.site); });
+      inc.site.bldgList.forEach(function (x) {
+        if (cur.site.bldgList.indexOf(x) < 0) cur.site.bldgList.push(x);
+        var a = cur.site.floors[x], f = (inc.site.floors && inc.site.floors[x]) || legacy(inc.site);
+        if (!a) { cur.site.floors[x] = { up: f.up.slice(), down: f.down.slice(), roof: !!f.roof }; return; }
+        f.up.forEach(function (k) { if (a.up.indexOf(k) < 0) a.up.push(k); }); f.down.forEach(function (k) { if (a.down.indexOf(k) < 0) a.down.push(k); }); if (f.roof) a.roof = true;
+        a.up.sort(function (p, q) { return floorNum(p) - floorNum(q); }); a.down.sort(function (p, q) { return floorNum(q) - floorNum(p); });
+      });
+    }
     if (p.id === S.project) { S.rooms = cur.rooms; S.site = cur.site; } else lsSet('rc:p:' + p.id, cur);
   });
   lsSet('rc:projects', S.projects); saveLocal();
@@ -1421,38 +1429,50 @@ function openNewProject() {
     S.bldg = null; S.floor = '1층'; render(); openNewBldg();
   });
 }
-function openNewBldg() { modal('동 추가', '동 이름 (예: 신관, 다목적강당)', '동 이름', function (n) { if (S.site.bldgList.indexOf(n) < 0) { S.site.bldgList.push(n); markSite(); } goto(n, S.floor || '1층'); }); }
+function openNewBldg() { modal('동 추가', '동 이름 (예: 신관, 다목적강당)', '동 이름', function (n) { if (S.site.bldgList.indexOf(n) < 0) { S.site.bldgList.forEach(flOf); if (!S.site.floors) S.site.floors = {}; S.site.floors[n] = { up: ['1층'], down: [], roof: false }; var pb = S.bldg && S.site.bldgList.indexOf(S.bldg) >= 0 ? S.bldg : S.site.bldgList[S.site.bldgList.length - 1]; if (pb) { if (!S.site.schoolBy) S.site.schoolBy = {}; S.site.schoolBy[n] = schoolOf(pb); } S.site.bldgList.push(n); markSite(); } goto(n, floorOk(n, S.floor) ? S.floor : firstFloor(n)); }); }
 function switchProject(id) {
   S.pick = null;
-  S.project = id; S.cur = null; S.door = 0; S.view = 'input';
+  flushSave(); S.project = id; S.cur = null; S.door = 0; S.view = 'input';
   loadLocal(id);
   var last = lsGet('rc:last');
   S.bldg = last && last.project === id ? last.bldg : S.site.bldgList[0];
-  S.floor = last && last.project === id ? last.floor : (S.site.up[0] || '1층');
+  S.floor = last && last.project === id ? last.floor : null;
   if (S.site.bldgList.indexOf(S.bldg) < 0) S.bldg = S.site.bldgList[0] || null;
-  if (S.site.up.indexOf(S.floor) < 0 && S.site.down.indexOf(S.floor) < 0 && !(S.site.roof && S.floor === ROOF) && S.floor !== COMMON) S.floor = S.site.up[0] || '1층';
+  if (S.bldg) { S.site.bldgList.forEach(flOf); if (!S.floor || !floorOk(S.bldg, S.floor)) S.floor = firstFloor(S.bldg); } else S.floor = S.floor || '1층';
   ensureAuto(); subscribe(id); saveLocal(); render(); scheduleFlush(200);
 }
 var tt = null;
 function toast(t, ms) { var el = document.getElementById('toast'); el.textContent = t; el.style.display = 'block'; clearTimeout(tt); tt = setTimeout(function () { el.style.display = 'none'; }, ms || 2200); }
 
 // 이벤트
+window.addEventListener('pagehide', flushSave);
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSave(); });
 document.addEventListener('click', function (e) { var b = e.target.closest('[data-a]'); if (b && ACT[b.getAttribute('data-a')]) ACT[b.getAttribute('data-a')](); });
 document.addEventListener('change', function (e) {
   var t = e.target;
   if (t.id === 'projSel') { switchProject(t.value); return; }
   if (t.hasAttribute && t.hasAttribute('data-photo')) { onPhotos(t); return; }
   if (t.hasAttribute && t.hasAttribute('data-backup')) { importBackup(t); t.value = ''; return; }
+  if (t.hasAttribute && t.hasAttribute('data-school')) { if (S.bldg) setSchool(S.bldg, t.value); return; }
   if (t.hasAttribute && t.hasAttribute('data-wl')) { var k = t.getAttribute('data-wl'), n = parseFloat(t.value); if (isNaN(n) || n < 0) n = k === 'total' ? 100 : 0; upd(function (x) { wallLen(x)[k] = n; }); return; }
   if (t.id === 'roomName') { var v = t.value.trim(); if (v) upd(function (x) { x.name = v; x.ocr = false; }); }
 });
 
 // 시작
-function fitScreen() { var h = window.visualViewport ? window.visualViewport.height : window.innerHeight; document.documentElement.style.setProperty('--app-h', Math.round(h) + 'px'); } // 기기 화면 높이에 맞춤
+// 앱 전체는 기기 화면 높이에 맞추고(키보드와 무관), 작은 입력창만 키보드 위 보이는 영역을 따라감
+function kbOpen() { var vv = window.visualViewport; return !!vv && window.innerHeight - vv.height > 120; }
+function fitScreen() {
+  var de = document.documentElement, vv = window.visualViewport;
+  if (!kbOpen()) de.style.setProperty('--app-h', Math.round(window.innerHeight) + 'px');
+  de.style.setProperty('--vv-top', Math.round(vv ? vv.offsetTop : 0) + 'px');
+  de.style.setProperty('--vv-h', Math.round(vv ? vv.height : window.innerHeight) + 'px');
+  if (!kbOpen() && (window.scrollY || document.documentElement.scrollTop)) window.scrollTo(0, 0); // 키보드가 닫히면 밀린 화면 되돌림
+}
 fitScreen();
 window.addEventListener('resize', fitScreen);
 window.addEventListener('orientationchange', function () { setTimeout(fitScreen, 300); });
-if (window.visualViewport) window.visualViewport.addEventListener('resize', fitScreen);
+if (window.visualViewport) { window.visualViewport.addEventListener('resize', fitScreen); window.visualViewport.addEventListener('scroll', fitScreen); }
+document.addEventListener('focusout', function () { setTimeout(function () { window.scrollTo(0, 0); fitScreen(); }, 50); });
 var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 var IS_STANDALONE = window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 function showUsage() {
