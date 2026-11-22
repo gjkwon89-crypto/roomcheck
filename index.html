@@ -421,13 +421,80 @@ function makeRoom(bldg, floor, name, type, order) {
 }
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
 // ───────────── A. 시설안전 심사 · 실 종류와 점검항목 (항목은 종류별로 하나씩 추가)
-var FAC_ADD = ['교실', '지원영역', '복도', '옥상', '화장실', '기계실', '전기실', '보일러실', '비상발전기실', '분전함', '승강기']; // 왼쪽 아래 실 추가 버튼
+var FAC_ADD = ['교실', '지원영역', '복도', '옥상', '화장실', '기계실', '전기실', '보일러실', '비상발전기실', '승강기']; // 왼쪽 아래 실 추가 버튼
 // 항목: has = 유무(없을 때가 기본 · 있을 때만 나머지 칸 표시), fields = 점검 칸(첫 보기가 기본값), bad = 미흡으로 세는 값
 var GB = ['양호', '미흡'], GBb = ['미흡'];
 function H(opts, on, label, def) { return { key: 'has', label: label || '유무', opts: opts, on: on, def: def }; }
-function F(key, label, opts, bad) { return { key: key, label: label, opts: opts, bad: bad || [] }; }
+function F(key, label, opts, bad, cond) { var m = /^(.*?)\s*(\(.*\))$/.exec(label || ''); return { key: key, label: m ? m[1] : label, sub: m ? m[2] : '', opts: opts, bad: bad || [], cond: cond }; }
+var ACT_ = function (d) { return H(['해당', '해당없음'], '해당', '적용 여부', d); }; // 비활성화(디폴트) 항목: 해당일 때만 칸 표시
 var YN = function (d) { return H(['설치', '미설치'], '설치', '', d); }, EX = function (d) { return H(['있음', '없음'], '있음', '', d); };
+// 여러 실에서 같이 쓰는 항목
+function NONST() { return { key: 'nonst', title: '비구조요소', fields: [F('ceil', '천장', GB, GBb), F('floor', '바닥', GB, GBb)] }; }
+function OUTLET() { return { key: 'outlet', title: '콘센트', fields: [F('inst', '설치 상태', GB, GBb), F('multi', '멀티콘센트 다중 사용', GB, GBb)] }; }
+function EXT(title) { return { key: 'ext', title: title || '소화기', has: YN('설치'), fields: [F('care', '관리상태', GB, GBb)] }; } // 소화기는 설치·양호가 기본
+function RENEW() { return { key: 'renew', title: '신재생', has: EX(), fields: [F('care', '관리 상태', GB, GBb), F('bems', 'BEMS 설치', ['있음', '없음'])] }; }
+function GAS_ALARM() { return [F('guide', '주의사항 및 사용방법', GB, GBb), F('sensor', '감지기', ['설치', '미설치'], ['미설치']), F('cut', '자동차단장치', ['설치', '미설치'], ['미설치']), F('alarm', '경보기(상주공간)', ['양호(상시전원 연결 포함)', '미흡'], ['미흡'])]; }
+function GAS_PIPE() { return [F('inst', '설치 상태(부식, 노후)', GB, GBb), F('cover', '충격방지덮개', GB, GBb), F('safe', '안전관리(말단부 막음, 전기 및 통신선 묶어 사용)', GB, GBb)]; }
+function GAS_SET() { return { key: 'gasSet', title: '가스누출 경보, 차단설비, 환기설비', has: H(['설치', '미설치'], '설치', '가스설비 설치 유무'), fields: GAS_ALARM().concat([F('vent', '환기설비', ['설치', '미설치'], ['미설치']), F('flam', '가연성 및 인화성 물질 취급', GB, GBb)]) }; }
 var FAC_FORMS = {
+
+  // ── 실별 항목 (2026-11-23 한글 파일 기준) ──
+  '교실': [
+    NONST(), OUTLET(),
+    { key: 'purifier', title: '공기청정기', has: H(['설치(실내기 공기청정기능 포함)', '미설치(실내기 공기청정기능 조작불가 포함)'], '설치(실내기 공기청정기능 포함)'), fields: [] },
+    { pair: true, key: 'circ', title: '공기순환기', has: YN(), fields: [] },
+    EXT()
+  ],
+  '지원영역': [
+    NONST(), OUTLET(), EXT(),
+    { key: 'water', title: '정수기', has: YN(), fields: [F('card', '관리카드', ['있음', '없음'], ['없음'])] },
+    { key: 'gasAlarm', title: '가스누출 경보 및 차단설비', sub: '조리실, 가정실 등', has: ACT_(), fields: GAS_ALARM() },
+    { key: 'gasPipe', title: '가스배관', has: ACT_(), fields: GAS_PIPE() },
+    { key: 'alarm', title: '경보설비', sub: '당직실, 행정실 등', has: ACT_(), fields: [F('exist', '유무', ['없음', '있음']), F('recv', '수신기', ['설치', '미설치'], ['미설치'], function (o) { return o.exist === '있음'; })] },
+    { key: 'altClass', title: '실외수업 대체공간', sub: '강당, 체육관 등', has: ACT_(), fields: [F('purify', '공기정화설비', ['설치', '미설치'], ['미설치']), F('comm', '비상통신장비 설치 및 상주공간 수신', GB, GBb)] }
+  ],
+  '옥상': [
+    { key: 'fdoor', title: '옥상 피난용 방화문', has: EX(), fields: [F('auto', '자동개폐장치', ['설치', '미설치'], ['미설치'])] },
+    { key: 'ghp', title: '가스배관(GHP)', has: EX(), fields: [F('inst', '설치 상태', GB, GBb), F('mark', '가스명·사용압력·흐름방향 표시', GB, GBb), F('guide', '주의사항 및 사용방법', GB, GBb)] },
+    RENEW()
+  ],
+  '화장실': [NONST(), { key: 'outlet', title: '콘센트', sub: '덮개형 사용유무 확인', fields: [F('inst', '설치 상태', GB, GBb), F('multi', '멀티콘센트 다중 사용', GB, GBb)] }],
+  '기계실': [
+    NONST(),
+    { key: 'stack', title: '적치물', fields: [F('care', '관리상태', GB, GBb)] },
+    { pair: true, key: 'pump', title: '소방펌프', has: YN(), fields: [] },
+    EXT('소화기(분말, 이산화탄소, 자동확산소화기)'),
+    GAS_SET(), { key: 'gasPipe', title: '가스배관', fields: GAS_PIPE() }, RENEW()
+  ],
+  '전기실': [
+    NONST(),
+    { key: 'mgmt', title: '관리상태', fields: [
+      F('loc', '위치', ['지하층', '지상1층(침수우려 공간)', '옥외(옥상 포함)']),
+      F('flood', '침수감지기', ['설치', '미설치'], ['미설치']), F('warn', '경보시스템', ['설치', '미설치'], ['미설치']), F('recv', '수신기(상주공간)', ['설치', '미설치'], ['미설치']),
+      F('prep', '침수 대비 조치(트렌치, 단높이 60cm이상, 집수정·배수펌프)', GB, GBb),
+      F('stack', '적치물', ['없음', '있음'], ['있음']), F('access', '출입관리시스템', ['있음', '없음'], ['없음']),
+      F('dia', '부착물 · 수변전단선결선도', ['부착', '미부착'], ['미부착']), F('seq', '부착물 · 조작순서', ['부착', '미부착'], ['미부착'])] },
+    EXT('소화기(분말, 이산화탄소)')
+  ],
+  '보일러실': [
+    NONST(),
+    { key: 'stack', title: '관리상태', fields: [F('stack', '적치물', ['없음', '있음'], ['있음'])] },
+    GAS_SET(), { key: 'gasPipe', title: '가스배관', fields: GAS_PIPE() },
+    EXT('소화기(분말, 이산화탄소, 자동확산소화기)')
+  ],
+  '비상발전기실': [
+    NONST(),
+    { key: 'mgmt', title: '관리상태', fields: [
+      F('proc', '신속 대처 방법 · 운전절차', GB, GBb), F('diag', '신속 대처 방법 · 비상전원 공급계통도', GB, GBb),
+      F('chamber', '소음제어장치 · 챔버', GB, GBb), F('muffler', '소음제어장치 · 소음기', GB, GBb), F('flue', '소음제어장치 · 연도', GB, GBb),
+      F('spring', '방진장치(방진스프링)', ['설치', '미설치'], ['미설치']),
+      F('cover', '축전지(배터리) · 커버', GB, GBb), F('charge', '축전지(배터리) · 충전장치 연결', GB, GBb),
+      F('stack', '적치물', ['없음', '있음'], ['있음'])] },
+    EXT('소화기(분말, 이산화탄소)')
+  ],
+  '승강기': [
+    { key: 'safe', title: '안전관리', fields: [F('cctv', 'CCTV', ['설치', '미설치'], ['미설치']), F('comm', '비상통신장비 설치 및 상주공간 수신', GB, GBb)] }
+  ],
   '외부': [
     { key: 'wall', title: '옹벽', has: YN(), fields: [F('care', '관리상태', GB, GBb)] },
     { key: 'slope', title: '절토 사면 및 지반', has: YN(), fields: [F('care', '관리상태', GB, GBb)] },
@@ -462,7 +529,8 @@ var FAC_FORMS = {
   ]
 };
 // 한 실 안에 여러 개 입력하는 설비 (출입문처럼 탭으로 추가) · 0개 = 없음이 기본
-var FAC_MULTI = { '복도': [{ key: 'eps', title: 'EPS/TPS', form: 'EPS/TPS', short: 'EPS' }, { key: 'pdps', title: 'PD/PS', form: 'PD/PS', short: 'PD' }, { key: 'panel', title: '분전함', form: '분전함', short: '분전함' }] };
+var FAC_MULTI = {};
+['복도', '교실', '지원영역', '화장실', '옥상', '기계실', '전기실', '보일러실'].forEach(function (t) { FAC_MULTI[t] = [{ key: 'eps', title: 'EPS/TPS', form: 'EPS/TPS', short: 'EPS' }, { key: 'pdps', title: 'PD/PS', form: 'PD/PS', short: 'PD' }, { key: 'panel', title: '분전함', form: '분전함', short: '분전함' }]; });
 function itemFields(it) { return it.has ? [it.has].concat(it.fields) : it.fields; }
 function itemOn(it, o) { return !it.has || o.has === it.has.on; }
 function newItem(it) { var o = {}; if (it.has) o.has = it.has.def || it.has.opts.filter(function (x) { return x !== it.has.on; })[0]; it.fields.forEach(function (x) { o[x.key] = x.opts[0]; }); return o; }
@@ -472,7 +540,7 @@ function makeFacRoom(bldg, floor, name, type, order) { return { id: rid(), fac: 
 function setDefs(form, f, prefix) {
   var out = [];
   (FAC_FORMS[form] || []).forEach(function (it) { var o = f[it.key] || (f[it.key] = newItem(it)); if (!itemOn(it, o)) return;
-    it.fields.forEach(function (x) { if (x.bad.indexOf(o[x.key]) >= 0) out.push({ where: prefix + it.title, what: x.label + ' ' + o[x.key] }); }); });
+    it.fields.forEach(function (x) { if (x.cond && !x.cond(o)) return; if (x.bad.indexOf(o[x.key]) >= 0) out.push({ where: prefix + it.title, what: x.label + ' ' + o[x.key] }); }); });
   return out;
 }
 function facDefs(r) {
@@ -485,9 +553,9 @@ function itemCards(form, f, setter) {
   var its = FAC_FORMS[form] || [];
   var html = its.map(function (it) {
     var o = f[it.key] || (f[it.key] = newItem(it)), on = itemOn(it, o);
-    var n = on ? it.fields.filter(function (x) { return x.bad.indexOf(o[x.key]) >= 0; }).length : 0;
+    var n = on ? it.fields.filter(function (x) { return (!x.cond || x.cond(o)) && x.bad.indexOf(o[x.key]) >= 0; }).length : 0;
     var st = !on ? '<span class="badge b-na">' + esc(o.has) + '</span>' : it.fields.length ? '<span class="badge b-' + (n ? 'bad' : 'good') + '">' + (n ? '미흡 ' + n : '양호') + '</span>' : '<span class="badge b-good">' + esc(o.has) + '</span>';
-    var form2 = itemFields(it).map(function (x) { return x.key === 'has' ? x : { key: x.key, label: x.label, opts: x.opts, bad: x.bad, when: function (oo) { return itemOn(it, oo); } }; });
+    var form2 = itemFields(it).map(function (x) { return x.key === 'has' ? x : { key: x.key, label: x.label, sub: x.sub, opts: x.opts, bad: x.bad, when: function (oo) { return itemOn(it, oo) && (!x.cond || x.cond(oo)); } }; });
     return '<div class="fi"><h4>' + esc(it.title) + (it.sub ? ' <small>(' + esc(it.sub) + ')</small>' : '') + ' ' + st + '</h4><div class="fgrid">' +
       chips(form2, o, function (k, v) { setter(it.key, k, v); }) + '</div></div>';
   });
