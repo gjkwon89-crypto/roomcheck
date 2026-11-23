@@ -1016,6 +1016,7 @@ function suggest(type) {
   if (type === '개별실') { var max = 0; same.forEach(function (r) { var m = /^(\d+)실$/.exec(r.name); if (m) max = Math.max(max, +m[1]); }); return String(max + 1).padStart(2, '0') + '실'; }
   if (type === '계단') return '계단실-' + (same.length + 1);
   if (type === '복도') return same.length ? '복도-' + (same.length + 1) : '복도';
+  if (['화장실(남)', '화장실(여)', '샤워실(남)', '샤워실(여)'].indexOf(type) >= 0) return type + '-' + (same.length + 1); // 화장실(남)-1, 샤워실(여)-1 부터
   var base = BASE_NAME[type] || type; return same.length ? base + '-' + (same.length + 1) : base;
 }
 function ensureAuto() {
@@ -1099,8 +1100,9 @@ function topbar() {
   var label = '이 기기에 저장' + (S.persist === false ? ' (보호 안 됨)' : ''), bg = 'background:#E0F2FE;color:#075985';
   var bAt = lsGet('rc:backupAt'), dAt = lsGet('rc:dirtyAt');
   var need = dAt && (!bAt || dAt > bAt);
-  var bLabel = bAt ? '백업 ' + shortTime(bAt) : '백업 안 함';
-  var bk = btn('bkp ' + (need ? 'need' : 'ok'), (need ? '⚠ ' : '✓ ') + esc(bLabel) + (need ? ' · 백업 필요' : ''), function () { setMod('indoor'); S.view = 'table'; render(); });
+  var un = unsavedCount(); need = need || un > 0;
+  var bLabel = (bAt ? '저장 ' + shortTime(bAt) : '저장 안 함') + (need ? (un ? ' · 사진 ' + un + '장 미저장' : ' · 저장 필요') : '');
+  var bk = btn('bkp ' + (need ? 'need' : 'ok'), (need ? '⚠ ' : '✓ ') + esc(bLabel) + ' · 저장/불러오기', openSavePanel);
   var inst = (IS_IOS && !IS_STANDALONE) ? '<div class="install"><b>설치해서 쓰세요:</b> Safari 공유 버튼(□↑) → <b>홈 화면에 추가</b>. 홈 화면 앱과 Safari는 데이터가 따로 저장되니, 처음부터 홈 화면 아이콘으로만 사용하세요.</div>' : '';
   var opts = S.projects.map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === baseId(S.project) ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
   if (S.project && !projectInfo(S.project)) opts = '<option selected>' + esc(S.project) + '</option>' + opts;
@@ -1604,7 +1606,7 @@ function readZip(file) {
 }
 
 // ───────────── 내보내기 공통: 준비 → 공유(파일에 저장) ─────────────
-var PART_LIMIT = 200 * 1024 * 1024; // ZIP 하나당 최대 약 200MB, 넘으면 나눠 저장 (아이패드 '파일에 저장'이 큰 파일에서 꺼지는 문제 방지)
+var PART_LIMIT = 100 * 1024 * 1024; // ZIP 하나당 최대 약 100MB (아이패드 공유창이 큰 파일에서 멈추거나 꺼지는 문제 방지)
 function mb(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB'; }
 function shortTime(iso) { var d = new Date(iso), t = new Date(); var hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); return d.toDateString() === t.toDateString() ? '오늘 ' + hm : (d.getMonth() + 1) + '/' + d.getDate() + ' ' + hm; }
 function canShareFiles(files) { try { return !!(navigator.canShare && navigator.canShare({ files: files })); } catch (e) { return false; } }
@@ -1629,14 +1631,16 @@ function exportModal(title, build) {
     xo.innerHTML = h;
     var shared = {};
     Array.prototype.forEach.call(xo.querySelectorAll('[data-sh]'), function (b) { b.onclick = function () {
-      var i = +b.getAttribute('data-sh');
-      navigator.share({ files: [files[i]], title: title }).then(function () {
-        shared[i] = 1; b.textContent = '✓ ' + (one ? '저장했습니다' : (i + 1) + ' / ' + files.length + ' 저장함'); b.classList.remove('blue');
+      var i = +b.getAttribute('data-sh'), lbl = b.textContent, fin = false;
+      b.textContent = '공유 화면 여는 중… (' + mb(files[i].size) + ')'; b.disabled = true;
+      var slow = setTimeout(function () { if (!fin) { b.textContent = lbl; b.disabled = false; toast('공유 화면이 안 뜨면 아래 ↓ ' + (i + 1) + '번 링크로 저장하세요'); } }, 20000);
+      navigator.share({ files: [files[i]], title: title }).finally(function () { fin = true; clearTimeout(slow); b.disabled = false; }).then(function () {
+        shared[i] = 1; if (res.afterPart) res.afterPart(i); b.textContent = '✓ ' + (one ? '저장했습니다' : (i + 1) + ' / ' + files.length + ' 저장함'); b.classList.remove('blue');
         if (Object.keys(shared).length === files.length) { if (res.after) res.after(); toast(one ? '저장했습니다' : '파일 ' + files.length + '개 모두 저장했습니다'); }
         else toast((i + 1) + '번째 저장 · 다음 파일도 저장하세요');
-      }).catch(function (e) { if (!e || e.name !== 'AbortError') toast('공유가 안 되면 아래 ↓ 버튼으로 저장하세요'); });
+      }).catch(function (e) { b.textContent = lbl; if (!e || e.name !== 'AbortError') toast('공유가 안 되면 아래 ↓ 버튼으로 저장하세요'); });
     }; });
-    Array.prototype.forEach.call(xo.querySelectorAll('[data-dl]'), function (a) { a.addEventListener('click', function () { if (res.after) res.after(); setTimeout(render, 500); }); });
+    Array.prototype.forEach.call(xo.querySelectorAll('[data-dl]'), function (a) { a.addEventListener('click', function () { if (res.afterPart) res.afterPart(+a.getAttribute('data-dl')); if (res.after && files.length === 1) res.after(); }); });
   }).catch(function (e) { xs.textContent = '실패: ' + ((e && e.message) || e); });
 }
 // 사진 항목 목록: 지금 실 이름 기준 파일명, 같은 이름은 (2) 붙여 절대 덮어쓰지 않음
@@ -1704,24 +1708,136 @@ function exportPhotos() {
     }).then(function (files) { return { files: files, msg: '분야/동 폴더별로 정리됨' }; });
   });
 }
-function exportBackup(dataOnly) {
+// 백업 데이터(입력값 전체) JSON
+function backupJson() {
+  var data = { app: 'roomcheck', version: 2, savedAt: new Date().toISOString(), projects: S.projects, data: {} };
+  S.projects.forEach(function (p) { unitsOf(p).forEach(function (u) { data.data[u] = u === S.project ? unitData(u) : (lsGet('rc:p:' + u) || {}); }); });
+  return data;
+}
+// 사진 저장 여부: 공유/다운로드가 끝난 사진 key 목록 (다음엔 새 사진만)
+function savedKeys() { return lsGet('rc:photoSaved') || {}; }
+function markSaved(keys) { var m = savedKeys(); keys.forEach(function (k) { m[k] = 1; }); lsSet('rc:photoSaved', m); }
+function unsavedCount() { // 지금 프로젝트·차수에서 아직 파일 앱에 저장 안 한 사진·첨부 수
+  var m = savedKeys(), n = 0, d = unitData(S.project) || {};
+  ['rooms', 'frooms', 'orooms'].forEach(function (k) { var R = d[k] || {}; Object.keys(R).forEach(function (id) { (R[id].photos || []).concat(R[id].files || []).forEach(function (ph) { if (ph.key && !m[ph.key] && localUrls[ph.key]) n++; }); }); });
+  return n;
+}
+// ── 반자동 저장: 현장심사 / 프로젝트 / 최초심사(1차 보완…) / 1. 데이터 , 2. 사진/동 ──
+var SHARE_MAX = 100; // 한 번에 공유하는 사진 수 (많으면 공유창이 멈춤)
+function unitLabel(u) { var p = projectInfo(baseId(u)) || {}; return { proj: p.name || baseId(u), round: roundLabel(roundOf(u)) }; }
+function dataFileName(u) { var l = unitLabel(u); return safe('데이터_' + l.proj + '_' + l.round.replace(/\s/g, '') + '.json'); }
+function mkFile(parts, name, type) { try { return new File(parts, name, { type: type }); } catch (e) { var b = new Blob(parts, { type: type }); b.name = name; return b; } }
+// 데이터 저장: 항상 같은 파일 이름 → 파일 앱에서 '대치'하면 하나로 계속 최신
+function quickSaveData() {
   saveLocal();
-  exportModal(dataOnly === true ? '데이터만 백업 (사진 제외)' : '전체 백업 (데이터 + 사진)', function (prog) {
-    var data = { app: 'roomcheck', version: 2, savedAt: new Date().toISOString(), projects: S.projects, data: {} };
-    S.projects.forEach(function (p) { unitsOf(p).forEach(function (u) { data.data[u] = u === S.project ? unitData(u) : (lsGet('rc:p:' + u) || {}); }); });
-    var json = JSON.stringify(data);
-    return (dataOnly === true ? Promise.resolve([]) : idbAll()).then(function (list) {
+  var u = S.project, d = { app: 'roomcheck', version: 2, savedAt: new Date().toISOString(), projects: [projectInfo(baseId(u))].filter(Boolean), data: {} };
+  d.data[u] = unitData(u);
+  var f = mkFile([JSON.stringify(d)], dataFileName(u), 'application/json');
+  var done = function () { lsSet('rc:backupAt', new Date().toISOString()); toast('데이터 저장했습니다'); render(); openSavePanel(); };
+  if (canShareFiles([f])) navigator.share({ files: [f], title: f.name }).then(done).catch(function (e) { if (!e || e.name !== 'AbortError') exportModal('데이터 저장', function () { return Promise.resolve({ files: [f], after: done }); }); });
+  else exportModal('데이터 저장', function () { return Promise.resolve({ files: [f], after: done }); });
+}
+// 사진 파일 이름(한 번 정해지면 ph.fn 으로 고정 → 다시 저장해도 같은 이름) · 폴더는 동별(외부환경은 '외부')
+function mediaFolder(r) { return r.out ? '외부' : (r.bldg || '기타'); }
+function assignNames(u) {
+  var d = unitData(u) || {}, used = {}, changed = false, rooms = [];
+  ['rooms', 'frooms', 'orooms'].forEach(function (k) { var R = d[k] || {}; Object.keys(R).forEach(function (id) { rooms.push(R[id]); }); });
+  rooms.forEach(function (r) { (r.photos || []).concat(r.files || []).forEach(function (ph) { if (ph.fn) used[mediaFolder(r) + '/' + ph.fn] = 1; }); });
+  rooms.forEach(function (r) {
+    var pre = r.out ? '외부_' : (r.fac ? '시설_' : ''), dir = mediaFolder(r) + '/';
+    (r.photos || []).forEach(function (ph) {
+      if (ph.fn) return;
+      var n = 1, nm;
+      do { nm = r.out ? safe((ph.sign ? '실명판_' : '') + '외부_' + r.name + '_' + String(n).padStart(3, '0') + '.jpg') : pre + photoFileName(r, n, ph.sign); n++; } while (used[dir + nm]);
+      ph.fn = nm; used[dir + nm] = 1; changed = true;
+    });
+    (r.files || []).forEach(function (fx) {
+      if (fx.fn) return;
+      var base = safe(pre + (r.out ? '' : r.bldg + '_' + (r.floor === COMMON ? '' : r.floor + '_')) + r.name + '_첨부_' + fx.name), nm = base, j = 2;
+      while (used[dir + nm]) nm = base.replace(/(\.[^.]+)?$/, ' (' + (j++) + ')$1');
+      fx.fn = nm; used[dir + nm] = 1; changed = true;
+    });
+  });
+  if (changed) { touchData(); saveLocal(); }
+  return rooms;
+}
+// 동별 '아직 저장 안 한' 사진 묶음 (100장씩)
+function newBatches(u) {
+  var rooms = assignNames(u), m = savedKeys();
+  return idbAll().then(function (list) {
+    var blob = {}; list.forEach(function (x) { if (x.project === u && x.blob) blob[x.key] = x; });
+    var by = {}, order = [];
+    rooms.sort(function (a, b) { return a.bldg === b.bldg ? (floorNum(a.floor) - floorNum(b.floor) || a.order - b.order) : (a.bldg < b.bldg ? -1 : 1); }).forEach(function (r) {
+      (r.photos || []).concat(r.files || []).forEach(function (ph) {
+        var x = blob[ph.key]; if (!x || m[ph.key]) return;
+        var dir = mediaFolder(r); if (!by[dir]) { by[dir] = []; order.push(dir); }
+        by[dir].push({ key: ph.key, file: mkFile([x.blob], ph.fn, x.blob.type || x.type || 'image/jpeg') });
+      });
+    });
+    var out = [];
+    order.sort(function (a, b) { return a === '외부' ? 1 : b === '외부' ? -1 : 0; }).forEach(function (dir) {
+      var all = by[dir], n = Math.ceil(all.length / SHARE_MAX);
+      for (var i = 0; i < n; i++) out.push({ dir: dir, idx: i + 1, of: n, items: all.slice(i * SHARE_MAX, (i + 1) * SHARE_MAX) });
+    });
+    return out;
+  });
+}
+function shareBatch(bt, btn) {
+  var files = bt.items.map(function (x) { return x.file; });
+  var done = function () { markSaved(bt.items.map(function (x) { return x.key; })); toast(bt.dir + ' 사진 ' + files.length + '장 저장했습니다'); render(); openSavePanel(); };
+  if (canShareFiles(files)) {
+    btn.disabled = true; btn.firstChild.textContent = '공유 화면 여는 중…';
+    navigator.share({ files: files }).then(done).catch(function (e) { btn.disabled = false; btn.firstChild.textContent = '다시 시도'; if (!e || e.name !== 'AbortError') toast('공유가 안 됐습니다. 다시 눌러 보세요'); });
+  } else { // PC 등: ZIP으로 받기
+    exportModal(bt.dir + ' 사진', function (prog) { return makeZip(bt.items.map(function (x) { return { name: x.file.name, blob: x.file }; }), function (a, b) { prog(a, b, '묶는 중'); }).then(function (z) { return { files: [mkFile([z], safe(bt.dir + '_사진_' + stamp()) + '.zip', 'application/zip')], after: done }; }); });
+  }
+}
+// 저장 · 불러오기 화면 (상단 저장 버튼)
+function openSavePanel() {
+  saveLocal();
+  var u = S.project, l = unitLabel(u), m = document.getElementById('modal');
+  var bAt = lsGet('rc:backupAt'), dAt = lsGet('rc:dirtyAt'), need = dAt && (!bAt || dAt > bAt);
+  var path = '<b>현장심사 / ' + esc(l.proj) + ' / ' + esc(l.round) + '</b>';
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="저장 · 불러오기"><div class="box wide"><h3 style="margin:0 0 2px;font-size:16px">저장 · 불러오기</h3>' +
+    '<p class="note" style="margin:0 0 10px">저장 폴더: ' + path + ' (파일 앱 → 나의 iPad에 한 번만 만들어 두세요)</p>' +
+    '<div style="font-weight:800;font-size:13px;margin:0 0 4px">① 사진 → 2. 사진 / 동 폴더</div><div class="dl" id="svp"><p class="note" style="margin:0">새 사진 확인 중…</p></div>' +
+    '<div style="font-weight:800;font-size:13px;margin:10px 0 4px">② 데이터 → 1. 데이터 폴더 <span class="note" style="font-weight:400">· 마지막 ' + (bAt ? esc(shortTime(bAt)) : '없음') + (need ? ' · <b style="color:#9A3412">바뀐 입력 있음</b>' : ' · 최신') + '</span></div>' +
+    '<div class="dl"><button type="button" class="hb' + (need ? ' blue' : '') + '" id="sv1">데이터 저장 <span style="font-weight:400">· ' + esc(dataFileName(u)) + '</span></button></div>' +
+    '<p class="note" style="margin:4px 0 0">데이터 파일 이름은 늘 같습니다. 저장할 때 <b>"대치"</b>를 누르면 파일 하나가 계속 최신으로 바뀝니다.</p>' +
+    '<div style="font-weight:800;font-size:13px;margin:10px 0 4px">불러오기 (다른 기기·복원)</div>' +
+    '<div class="dl"><label class="hb" style="position:relative;overflow:hidden">파일 고르기 <span style="font-weight:400">· 1. 데이터의 파일 + 2. 사진의 사진들을 한꺼번에 선택</span><input type="file" accept=".json,.zip,image/*,application/pdf,application/json,application/zip" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
+    '<div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" class="hb" id="sv3" style="font-size:12px">전체 백업 ZIP (모든 프로젝트·사진)</button><button type="button" class="hb" id="svc">닫기</button></div></div></div>';
+  document.getElementById('sv1').onclick = quickSaveData;
+  document.getElementById('sv3').onclick = function () { exportBackup(); };
+  document.getElementById('svc').onclick = function () { m.innerHTML = ''; render(); };
+  newBatches(u).then(function (bs) {
+    var box = document.getElementById('svp'); if (!box) return;
+    if (!bs.length) { box.innerHTML = '<p class="note" style="margin:0">✓ 새로 저장할 사진이 없습니다</p>'; return; }
+    box.innerHTML = bs.map(function (bt, i) { return '<button type="button" class="hb blue" data-bt="' + i + '"><span>' + esc(bt.dir) + ' 새 사진 ' + bt.items.length + '장' + (bt.of > 1 ? ' (' + bt.idx + '/' + bt.of + ')' : '') + '</span> <span style="font-weight:400">→ 2. 사진 / ' + esc(bt.dir) + '</span></button>'; }).join('');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-bt]'), function (b) { b.onclick = function () { shareBatch(bs[+b.getAttribute('data-bt')], b); }; });
+  });
+}
+// mode: true = 데이터만, 'new' = 아직 저장 안 한 사진만, 그 외 = 전체
+function exportBackup(mode) {
+  saveLocal();
+  var dataOnly = mode === true, onlyNew = mode === 'new';
+  exportModal(dataOnly ? '데이터만 백업 (사진 제외)' : onlyNew ? '새 사진 저장' : '전체 백업 (데이터 + 사진)', function (prog) {
+    var data = backupJson(), json = JSON.stringify(data), m = savedKeys();
+    return (dataOnly ? Promise.resolve([]) : idbAll()).then(function (list) {
       var ents = [];
-      if (dataOnly !== true) S.projects.forEach(function (p) {
+      if (!dataOnly) S.projects.forEach(function (p) {
         unitsOf(p).forEach(function (u) {
           var d = data.data[u] || {};
           ents = ents.concat(photoEntries(u, Object.assign({}, d.rooms || {}, d.frooms || {}, d.orooms || {}), list.filter(function (x) { return x.project === u; }), '사진/' + safe(p.name || p.id) + '/' + (p.rounds && p.rounds.length ? safe(roundLabel(roundOf(u))) + '/' : '')));
         });
       });
+      if (onlyNew) { ents = ents.filter(function (e) { return !m[e.rec.key]; }); if (!ents.length) throw new Error('새로 저장할 사진이 없습니다 (모두 저장됨)'); }
       var parts = ents.length ? splitParts(ents) : [[]];
       var extra = function (p) { return [{ name: 'backup.json', text: json }, { name: 'photos.json', text: JSON.stringify(p.map(function (e) { return { path: e.name, rec: e.rec }; })) }]; };
-      return zipParts(parts, (dataOnly === true ? '현장심사_데이터백업_' : '현장심사_백업_') + stamp(), extra, prog, '백업 만드는 중').then(function (files) {
-        return { files: files, msg: dataOnly === true ? '입력값만 · 사진 제외' : '사진 ' + ents.length + '장 포함', after: dataOnly === true ? null : function () { lsSet('rc:backupAt', new Date().toISOString()); } };
+      return zipParts(parts, (dataOnly ? '현장심사_데이터백업_' : onlyNew ? '현장심사_새사진_' : '현장심사_백업_') + stamp(), extra, prog, '백업 만드는 중').then(function (files) {
+        return { files: files, msg: dataOnly ? '입력값만 · 사진 제외' : '사진 ' + ents.length + '장' + (onlyNew ? ' (지난 저장 이후)' : ' 포함'),
+          afterPart: function (i) { markSaved(parts[i].map(function (e) { return e.rec.key; })); lsSet('rc:backupAt', new Date().toISOString()); render(); },
+          after: dataOnly ? function () { lsSet('rc:backupAt', new Date().toISOString()); } : null };
       });
     });
   });
@@ -1777,6 +1893,8 @@ function importBackup(input) {
   exportModal('백업 불러오기', function (prog) {
     lastImported = [];
     var rooms = 0, photos = 0, chain = Promise.resolve();
+    var isData = function (f) { return /\.(json|zip)$/i.test(f.name); }, media = files.filter(function (f) { return !isData(f); });
+    files = files.filter(isData);
     files.forEach(function (f) {
       chain = chain.then(function () {
         if (/\.json$/i.test(f.name)) return f.text().then(function (t) { rooms += mergeBackup(JSON.parse(t)); });
@@ -1805,6 +1923,35 @@ function importBackup(input) {
         });
       });
     });
+    // 낱장 사진·첨부: 데이터에 기록된 파일 이름(fn)으로 원래 실을 찾아 붙임
+    chain = chain.then(function () {
+      if (!media.length) return;
+      var idx = {};
+      S.projects.forEach(function (p) { unitsOf(p).forEach(function (u) { var d = unitData(u) || {};
+        ['rooms', 'frooms', 'orooms'].forEach(function (k) { var R = d[k] || {}; Object.keys(R).forEach(function (id) { var r = R[id];
+          (r.photos || []).forEach(function (ph) { if (ph.fn) idx[ph.fn] = idx[ph.fn] || []; if (ph.fn) idx[ph.fn].push({ u: u, r: r, ph: ph }); });
+          (r.files || []).forEach(function (ph) { if (ph.fn) idx[ph.fn] = idx[ph.fn] || []; if (ph.fn) idx[ph.fn].push({ u: u, r: r, ph: ph, file: true }); });
+        }); });
+      }); });
+      var c2 = Promise.resolve(), k = 0, miss = 0;
+      media.forEach(function (f) { c2 = c2.then(function () {
+        k++; prog(k, media.length, '사진 맞추는 중');
+        var hits = (idx[f.name] || []).filter(function (h) { return !localUrls[h.ph.key]; });
+        if (!(idx[f.name] || []).length) { miss++; return; }
+        if (!hits.length) return;
+        return f.arrayBuffer().then(function (buf) {
+          return Promise.all(hits.map(function (h) {
+            var blob = new Blob([buf], { type: f.type || (h.file ? (h.ph.type || '') : 'image/jpeg') });
+            localUrls[h.ph.key] = URL.createObjectURL(blob); photos++;
+            var rec = { key: h.ph.key, project: h.u, roomId: h.r.id, name: h.ph.name, blob: blob };
+            if (h.file) { rec.kind = 'file'; rec.type = h.ph.type || f.type || ''; } else rec.sign = !!h.ph.sign;
+            markSaved([h.ph.key]);
+            return idbPut(rec);
+          }));
+        });
+      }); });
+      return c2.then(function () { if (miss) toast('맞는 실을 못 찾은 파일 ' + miss + '개 (데이터 파일을 같이 골라 주세요)', 4000); });
+    });
     return chain.then(function () {
       // 불러온 프로젝트를 바로 열기 (PC에서 처음 불러올 때 빈 화면으로 남던 문제)
       var go = lastImported.indexOf(baseId(S.project)) >= 0 ? S.project : lastImported.length ? latestUnit(lastImported[lastImported.length - 1]) : null;
@@ -1825,9 +1972,9 @@ function tablePage() {
   var bAt = lsGet('rc:backupAt');
   setTimeout(showUsage, 0);
   return '<div class="page"><div class="row" style="margin-bottom:8px"><h2 style="margin:0;font-size:17px">데이터 표 · 백업</h2><span class="note">실 ' + rows.length + '개 · 마지막 백업: ' + (bAt ? esc(shortTime(bAt)) : '없음') + ' · <span id="usage"></span></span></div>' +
-    '<div class="card" style="padding:8px 12px;margin-bottom:10px"><div class="row" style="gap:8px">' + btn('hb blue', '전체 백업 저장 (데이터+사진)', exportBackup) + btn('hb', '데이터만 백업 (사진 제외·빠름)', function () { exportBackup(true); }) + btn('hb dark', 'CSV 내보내기 (이 프로젝트)', exportCsv) + btn('hb', '사진만 내보내기 (이 프로젝트)', exportPhotos) +
+    '<div class="card" style="padding:8px 12px;margin-bottom:10px"><div class="row" style="gap:8px">' + btn('hb blue', '저장 · 불러오기', openSavePanel) + btn('hb', '전체 백업 (모든 사진)', function () { exportBackup(); }) + btn('hb dark', 'CSV 내보내기 (이 프로젝트)', exportCsv) + btn('hb', '사진만 내보내기 (이 프로젝트)', exportPhotos) +
     '<label class="hb" style="position:relative;overflow:hidden">백업 불러오기<input type="file" accept=".zip,.json,application/zip,application/json" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
-    '<p class="note" style="margin:6px 0 0">데이터와 사진은 이 앱 안에 저장됩니다. <b>홈 화면 아이콘을 지우면 함께 지워지니</b>, 하루 작업이 끝나면 <b>전체 백업 저장</b> → 공유 → <b>파일에 저장</b>으로 "나의 iPad" 폴더에 남겨 두세요. 백업 ZIP 안의 <b>사진</b> 폴더에는 동/층별로 실 이름이 붙은 사진이 들어 있습니다. 복원할 때는 <b>백업 불러오기</b>에서 ZIP을 고르면 됩니다(나뉜 파일은 한 번에 여러 개 선택). CSV는 엑셀에서 열 수 있습니다.</p></div>' +
+    '<p class="note" style="margin:6px 0 0">데이터와 사진은 이 앱 안에 저장됩니다. <b>홈 화면 아이콘을 지우면 함께 지워지니</b>, 작업이 끝나면 <b>저장 · 불러오기</b>에서 ① 동별 새 사진 → ② 데이터 순서로 파일 앱의 <b>현장심사 / 프로젝트 / 차수</b> 폴더에 저장하세요. CSV는 엑셀에서 열 수 있습니다.</p></div>' +
     '<div style="overflow:auto"><table class="t"><thead><tr><th>동</th><th>층</th><th>실명</th><th>종류</th><th>영역</th><th>문</th><th>사진</th><th>미흡</th><th>미흡 내용</th><th>최종수정</th></tr></thead><tbody>' +
     (tr || '<tr><td colspan="10" class="note">아직 데이터가 없습니다.</td></tr>') + '</tbody></table></div></div>';
 }
