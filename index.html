@@ -1116,13 +1116,12 @@ function locbar() {
   var st = S.site, s = S.bldg ? flOf(S.bldg) : { up: ['1층'], down: [], roof: false };
   var b = st.bldgList.map(function (x) { return btn('lb' + (x === S.bldg ? ' on' : ''), esc(x), function () { goto(x, S.floor && floorOk(x, S.floor) ? S.floor : firstFloor(x)); }); }).join('');
   var fb = function (f) { return btn('lb' + (f === S.floor ? ' on' : ''), esc(f), function () { if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }); };
-  var wall = S.bldg && S.mod !== 'facility' ? btn('lb wall' + (S.floor === COMMON ? ' on' : ''), esc(S.bldg) + ' 외벽', function () { goto(S.bldg, COMMON); }) : '';
   return '<div class="loc" style="align-items:stretch"><div style="display:flex;flex-direction:column;gap:3px"><b class="lbl" style="font-size:12px">지금 위치</b>' +
-    '<div class="row" role="group" aria-label="동">' + b + btn('add', '+ 동 추가', openNewBldg) + (S.bldg ? btn('add delf', '− ' + esc(S.bldg) + ' 삭제', function () { S.confirmDelBldg = S.bldg; S.confirmDelFloor = null; S.confirmDelAll = false; S.confirmDel = false; render(); }) : '') + '</div>' +
-    (wall ? '<div class="row">' + wall + '<span class="note" style="font-size:11px">동 전체 1회 평가</span></div>' : '') + '</div>' +
+    '<div class="row" role="group" aria-label="동">' + b + btn('add', '+ 동 추가', openNewBldg) + (S.bldg ? btn('add', '이름 변경', openRenameBldg, ' title="' + esc(S.bldg) + ' 이름 바꾸기"') : '') + (S.bldg ? btn('add delf', '− ' + esc(S.bldg) + ' 삭제', function () { S.confirmDelBldg = S.bldg; S.confirmDelFloor = null; S.confirmDelAll = false; S.confirmDel = false; render(); }) : '') + '</div>' +
+    '</div>' +
     '<span style="width:1px;background:#D1D5DB"></span><div style="display:flex;flex-direction:column;gap:2px;justify-content:center;flex:1 1 0;min-width:0">' +
     '<div class="row"><span class="fl">지하</span>' + s.down.map(fb).join('') + (S.floor === s.down[s.down.length - 1] ? delFloorBtn() : '') + btn('add', '+ 지하층 추가', function () { var f = 'B' + (s.down.length + 1); s.down.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) + schoolSel() + '</div>' +
-    '<div class="row"><span class="fl">지상</span>' + (S.mod === 'facility' && S.bldg ? btn('lb' + (S.floor === COMMON ? ' on' : ''), '외부', function () { goto(S.bldg, COMMON); }) : '') + s.up.map(fb).join('') + (s.roof ? fb(ROOF) : '') + ((S.floor === ROOF && s.roof) || (S.floor === s.up[s.up.length - 1] && s.up.length > 1) ? delFloorBtn() : '') + btn('add', '+ 층 추가', function () { var f = (s.up.length + 1) + '층'; s.up.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) +
+    '<div class="row"><span class="fl">지상</span>' + (S.bldg ? btn('lb' + (S.floor === COMMON ? ' on' : ''), S.mod === 'facility' ? '외부' : '외벽', function () { goto(S.bldg, COMMON); }, ' title="' + (S.mod === 'facility' ? '외부' : '외벽') + ' · 동 전체 1회 평가"') : '') + s.up.map(fb).join('') + (s.roof ? fb(ROOF) : '') + ((S.floor === ROOF && s.roof) || (S.floor === s.up[s.up.length - 1] && s.up.length > 1) ? delFloorBtn() : '') + btn('add', '+ 층 추가', function () { var f = (s.up.length + 1) + '층'; s.up.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) +
       (s.roof ? '' : btn('add', '+ 옥상층 추가', function () { s.roof = true; markSite(); if (S.bldg) goto(S.bldg, ROOF); else { S.floor = ROOF; render(); } })) + '</div></div>' +
     (S.bldg ? btn('hb blue', '현장심사기록지 보기', function () { S.view = 'result'; render(); }, ' style="align-self:center"') : '') + '</div>';
 }
@@ -1174,7 +1173,7 @@ function mainPanel() {
         btn('add', '+ 추가', function () { upd(function (x) { x.doors.push(newDoor()); S.door = x.doors.length - 1; }); }) +
         (d ? btn('add', '복사', function () { upd(function (x) { x.doors.push(clone(x.doors[di])); S.door = x.doors.length - 1; }); }, ' style="border-style:solid"') : '') +
         (r.doors.length > 1 ? btn('add', '삭제', function () { upd(function (x) { x.doors.splice(di, 1); S.door = Math.max(0, di - 1); }); }, ' style="border:0;color:#B91C1C;background:transparent"') : '') + '</div>' +
-        (d ? '<div class="grid2">' + (function () { if (d.speed == null) d.speed = '적용'; return ''; })() + chips(doorForm(r), d, function (k, v) { upd(function (x) { x.doors[di][k] = v; if (k === 'shape' && v === '자동문') x.doors[di].pinch = '속도제어'; }); }) + (isUni(r.bldg) ? '' : doorBumpGroup(d, di)) + '</div>' : '<p class="note">문이 없습니다. + 추가를 누르세요.</p>') +
+        (d ? '<div class="grid2">' + (function () { if (d.speed == null) d.speed = '적용'; return ''; })() + chips(doorForm(r), d, function (k, v) { upd(function (x) { x.doors[di][k] = v; if (k === 'shape' && (v === '자동문' || v === '여닫이')) x.doors[di].pinch = '속도제어'; }); }) + (isUni(r.bldg) ? '' : doorBumpGroup(d, di)) + '</div>' : '<p class="note">문이 없습니다. + 추가를 누르세요.</p>') +
         (isUni(r.bldg) && r.type === '복도' && d ? '<div class="grid2">' + blockGroup(r, di) + '</div>' : '') + '</section>';
     }
     h += accCard(r);
@@ -1605,7 +1604,7 @@ function readZip(file) {
 }
 
 // ───────────── 내보내기 공통: 준비 → 공유(파일에 저장) ─────────────
-var PART_LIMIT = 500 * 1024 * 1024; // ZIP 하나당 최대 약 500MB, 넘으면 나눠 저장
+var PART_LIMIT = 200 * 1024 * 1024; // ZIP 하나당 최대 약 200MB, 넘으면 나눠 저장 (아이패드 '파일에 저장'이 큰 파일에서 꺼지는 문제 방지)
 function mb(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + 'MB' : Math.max(1, Math.round(n / 1024)) + 'KB'; }
 function shortTime(iso) { var d = new Date(iso), t = new Date(); var hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); return d.toDateString() === t.toDateString() ? '오늘 ' + hm : (d.getMonth() + 1) + '/' + d.getDate() + ' ' + hm; }
 function canShareFiles(files) { try { return !!(navigator.canShare && navigator.canShare({ files: files })); } catch (e) { return false; } }
@@ -1622,15 +1621,21 @@ function exportModal(title, build) {
     if (!files.length) { xs.innerHTML = '<b>완료</b> · ' + esc(res.msg || ''); return; }
     xs.innerHTML = '<b>준비 완료</b> · 파일 ' + files.length + '개 · ' + mb(tot) + (res.msg ? ' · ' + esc(res.msg) : '');
     var h = '<div class="dl">';
-    if (canShareFiles(files)) h += '<button type="button" class="hb blue" id="xsh">공유 → "파일에 저장" (권장)</button>';
+    var one = files.length === 1;
+    if (canShareFiles(files.slice(0, 1))) h += one ? '<button type="button" class="hb blue" data-sh="0">공유 → "파일에 저장" (권장)</button>'
+      : files.map(function (f, i) { return '<button type="button" class="hb blue" data-sh="' + i + '">' + (i + 1) + ' / ' + files.length + ' 공유 → 파일에 저장</button>'; }).join(''); // 여러 개는 하나씩 (한꺼번에 넘기면 메모리 부족으로 꺼짐)
     files.forEach(function (f, i) { var u = URL.createObjectURL(f); urls.push(u); h += '<a class="hb" data-dl="' + i + '" href="' + u + '" download="' + esc(f.name) + '">↓ ' + esc(f.name) + ' (' + mb(f.size) + ')</a>'; });
     h += '</div><p class="note" style="margin:0 0 6px">공유 화면에서 <b>파일에 저장</b>을 누르고 <b>나의 iPad</b> 안의 폴더(예: 현장심사)를 골라 저장하세요. 이 앱을 지워도 그 파일은 남습니다.</p>';
     xo.innerHTML = h;
-    var sh = document.getElementById('xsh');
-    if (sh) sh.onclick = function () {
-      navigator.share({ files: files, title: title }).then(function () { if (res.after) res.after(); toast('저장했습니다'); render(); })
-        .catch(function (e) { if (!e || e.name !== 'AbortError') toast('공유가 안 되면 아래 ↓ 버튼으로 저장하세요'); });
-    };
+    var shared = {};
+    Array.prototype.forEach.call(xo.querySelectorAll('[data-sh]'), function (b) { b.onclick = function () {
+      var i = +b.getAttribute('data-sh');
+      navigator.share({ files: [files[i]], title: title }).then(function () {
+        shared[i] = 1; b.textContent = '✓ ' + (one ? '저장했습니다' : (i + 1) + ' / ' + files.length + ' 저장함'); b.classList.remove('blue');
+        if (Object.keys(shared).length === files.length) { if (res.after) res.after(); toast(one ? '저장했습니다' : '파일 ' + files.length + '개 모두 저장했습니다'); }
+        else toast((i + 1) + '번째 저장 · 다음 파일도 저장하세요');
+      }).catch(function (e) { if (!e || e.name !== 'AbortError') toast('공유가 안 되면 아래 ↓ 버튼으로 저장하세요'); });
+    }; });
     Array.prototype.forEach.call(xo.querySelectorAll('[data-dl]'), function (a) { a.addEventListener('click', function () { if (res.after) res.after(); setTimeout(render, 500); }); });
   }).catch(function (e) { xs.textContent = '실패: ' + ((e && e.message) || e); });
 }
@@ -1699,15 +1704,15 @@ function exportPhotos() {
     }).then(function (files) { return { files: files, msg: '분야/동 폴더별로 정리됨' }; });
   });
 }
-function exportBackup() {
+function exportBackup(dataOnly) {
   saveLocal();
-  exportModal('전체 백업 (데이터 + 사진)', function (prog) {
+  exportModal(dataOnly === true ? '데이터만 백업 (사진 제외)' : '전체 백업 (데이터 + 사진)', function (prog) {
     var data = { app: 'roomcheck', version: 2, savedAt: new Date().toISOString(), projects: S.projects, data: {} };
     S.projects.forEach(function (p) { unitsOf(p).forEach(function (u) { data.data[u] = u === S.project ? unitData(u) : (lsGet('rc:p:' + u) || {}); }); });
     var json = JSON.stringify(data);
-    return idbAll().then(function (list) {
+    return (dataOnly === true ? Promise.resolve([]) : idbAll()).then(function (list) {
       var ents = [];
-      S.projects.forEach(function (p) {
+      if (dataOnly !== true) S.projects.forEach(function (p) {
         unitsOf(p).forEach(function (u) {
           var d = data.data[u] || {};
           ents = ents.concat(photoEntries(u, Object.assign({}, d.rooms || {}, d.frooms || {}, d.orooms || {}), list.filter(function (x) { return x.project === u; }), '사진/' + safe(p.name || p.id) + '/' + (p.rounds && p.rounds.length ? safe(roundLabel(roundOf(u))) + '/' : '')));
@@ -1715,8 +1720,8 @@ function exportBackup() {
       });
       var parts = ents.length ? splitParts(ents) : [[]];
       var extra = function (p) { return [{ name: 'backup.json', text: json }, { name: 'photos.json', text: JSON.stringify(p.map(function (e) { return { path: e.name, rec: e.rec }; })) }]; };
-      return zipParts(parts, '현장심사_백업_' + stamp(), extra, prog, '백업 만드는 중').then(function (files) {
-        return { files: files, msg: '사진 ' + ents.length + '장 포함', after: function () { lsSet('rc:backupAt', new Date().toISOString()); } };
+      return zipParts(parts, (dataOnly === true ? '현장심사_데이터백업_' : '현장심사_백업_') + stamp(), extra, prog, '백업 만드는 중').then(function (files) {
+        return { files: files, msg: dataOnly === true ? '입력값만 · 사진 제외' : '사진 ' + ents.length + '장 포함', after: dataOnly === true ? null : function () { lsSet('rc:backupAt', new Date().toISOString()); } };
       });
     });
   });
@@ -1820,15 +1825,15 @@ function tablePage() {
   var bAt = lsGet('rc:backupAt');
   setTimeout(showUsage, 0);
   return '<div class="page"><div class="row" style="margin-bottom:8px"><h2 style="margin:0;font-size:17px">데이터 표 · 백업</h2><span class="note">실 ' + rows.length + '개 · 마지막 백업: ' + (bAt ? esc(shortTime(bAt)) : '없음') + ' · <span id="usage"></span></span></div>' +
-    '<div class="card" style="padding:8px 12px;margin-bottom:10px"><div class="row" style="gap:8px">' + btn('hb blue', '전체 백업 저장 (데이터+사진)', exportBackup) + btn('hb dark', 'CSV 내보내기 (이 프로젝트)', exportCsv) + btn('hb', '사진만 내보내기 (이 프로젝트)', exportPhotos) +
+    '<div class="card" style="padding:8px 12px;margin-bottom:10px"><div class="row" style="gap:8px">' + btn('hb blue', '전체 백업 저장 (데이터+사진)', exportBackup) + btn('hb', '데이터만 백업 (사진 제외·빠름)', function () { exportBackup(true); }) + btn('hb dark', 'CSV 내보내기 (이 프로젝트)', exportCsv) + btn('hb', '사진만 내보내기 (이 프로젝트)', exportPhotos) +
     '<label class="hb" style="position:relative;overflow:hidden">백업 불러오기<input type="file" accept=".zip,.json,application/zip,application/json" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
     '<p class="note" style="margin:6px 0 0">데이터와 사진은 이 앱 안에 저장됩니다. <b>홈 화면 아이콘을 지우면 함께 지워지니</b>, 하루 작업이 끝나면 <b>전체 백업 저장</b> → 공유 → <b>파일에 저장</b>으로 "나의 iPad" 폴더에 남겨 두세요. 백업 ZIP 안의 <b>사진</b> 폴더에는 동/층별로 실 이름이 붙은 사진이 들어 있습니다. 복원할 때는 <b>백업 불러오기</b>에서 ZIP을 고르면 됩니다(나뉜 파일은 한 번에 여러 개 선택). CSV는 엑셀에서 열 수 있습니다.</p></div>' +
     '<div style="overflow:auto"><table class="t"><thead><tr><th>동</th><th>층</th><th>실명</th><th>종류</th><th>영역</th><th>문</th><th>사진</th><th>미흡</th><th>미흡 내용</th><th>최종수정</th></tr></thead><tbody>' +
     (tr || '<tr><td colspan="10" class="note">아직 데이터가 없습니다.</td></tr>') + '</tbody></table></div></div>';
 }
 function nd(d) { return d.filter(function (x) { return !x.rec; }).length; } // 미흡 개수(권고사항 제외)
-function localTime(iso) { if (!iso) return ''; var d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
-function stamp() { var d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '_' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0'); }
+function localTime(iso) { if (!iso) return ''; var d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0'); } // 초까지 넣어 같은 분에 다시 내보내도 파일 이름이 겹치지 않게
+function stamp() { var d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '_' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0'); }
 function safe(n) { return String(n).replace(/[\\/:*?"<>|]/g, '_'); }
 // ───────────── 동별 점수표 ─────────────
 // 가점 항목: 평점 = 배점 × 해당(적합) ÷ 전체   · 감점 항목(배점 음수): 해당(위반)이 1곳이라도 있으면 배점만큼 감점
@@ -2292,11 +2297,11 @@ function reportSection(rooms, prevRooms, prevLabel) {
   return (pg ? '<p class="note" style="margin:0 0 6px">' + esc(prevLabel) + '와 비교 · <span class="pill fix">보완완료</span> 직전 차수 미흡 중 해결된 실 · <small class="nw">신규</small> 직전 차수엔 없던 미흡</p>' : '') + '<section class="card" style="padding:10px 14px">' + body + '</section>';
 }
 // 모달
-function modal(title, label, ph, onOk) {
+function modal(title, label, ph, onOk, val) {
   var m = document.getElementById('modal');
   m.innerHTML = '<div class="modal" role="dialog" aria-label="' + esc(title) + '"><form class="box" id="mf"><h3 style="margin:0 0 8px;font-size:16px">' + esc(title) + '</h3><label style="font-size:13px;color:#374151">' + esc(label) + '<input id="mi" placeholder="' + esc(ph) + '" autocomplete="off"></label>' +
     '<div class="row" style="justify-content:flex-end"><button type="button" class="hb" id="mc">취소</button><button type="submit" class="hb blue">확인</button></div></form></div>';
-  var i = document.getElementById('mi'); setTimeout(function () { i.focus(); }, 0);
+  var i = document.getElementById('mi'); if (val != null) i.value = val; setTimeout(function () { i.focus(); if (val != null) i.select(); }, 0);
   document.getElementById('mc').onclick = function () { m.innerHTML = ''; };
   document.getElementById('mf').onsubmit = function (e) { e.preventDefault(); var v = i.value.trim(); if (!v) return; m.innerHTML = ''; onOk(v); };
 }
@@ -2326,6 +2331,26 @@ function openNewProject() {
     switchProject(id); S.site = defaultSite(); markSite();
     S.bldg = null; S.floor = '1층'; render(); openNewBldg();
   });
+}
+// 동 이름 바꾸기 · 이 프로젝트의 모든 보완차수·모든 분야(실내·시설·외부환경 교사동 탭)에 함께 적용
+function openRenameBldg() {
+  var old = S.bldg; if (!old) return;
+  modal('동 이름 변경', '새 동 이름', old, function (n) {
+    if (n === old) return;
+    if (S.site.bldgList.indexOf(n) >= 0) { toast('같은 이름의 동이 이미 있습니다'); return; }
+    flushSave(); modCache = {};
+    var p = projectInfo(S.project), units = p ? unitsOf(p) : [S.project];
+    units.forEach(function (u) {
+      var d = u === S.project ? unitData(u) : lsGet('rc:p:' + u); if (!d || !d.site) return;
+      var st = d.site, i = (st.bldgList || []).indexOf(old); if (i < 0) return;
+      st.bldgList[i] = n;
+      ['floors', 'schoolBy'].forEach(function (k) { if (st[k] && st[k][old] != null) { st[k][n] = st[k][old]; delete st[k][old]; } });
+      [d.rooms || {}, d.frooms || {}].forEach(function (R) { Object.keys(R).forEach(function (id) { if (R[id].bldg === old) R[id].bldg = n; }); });
+      Object.keys(d.orooms || {}).forEach(function (id) { var g = d.orooms[id].o && d.orooms[id].o.g; Object.keys(g || {}).forEach(function (k) { (g[k] || []).forEach(function (it) { if (it.name === old) it.name = n; }); }); });
+      if (u !== S.project) lsSet('rc:p:' + u, d);
+    });
+    S.bldg = n; touchData(); saveLocal(); render(); toast(old + ' → ' + n + ' 이름을 바꿨습니다');
+  }, old);
 }
 function openNewBldg() { modal('동 추가', '동 이름 (예: 신관, 다목적강당)', '동 이름', function (n) { if (S.site.bldgList.indexOf(n) < 0) { S.site.bldgList.forEach(flOf); if (!S.site.floors) S.site.floors = {}; S.site.floors[n] = { up: ['1층'], down: [], roof: false }; var pb = S.bldg && S.site.bldgList.indexOf(S.bldg) >= 0 ? S.bldg : S.site.bldgList[S.site.bldgList.length - 1]; if (pb) { if (!S.site.schoolBy) S.site.schoolBy = {}; S.site.schoolBy[n] = schoolOf(pb); } S.site.bldgList.push(n); markSite(); } goto(n, floorOk(n, S.floor) ? S.floor : firstFloor(n)); }); }
 function switchProject(id, keep) {
