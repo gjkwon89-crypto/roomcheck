@@ -1994,34 +1994,60 @@ function importBackup(input) {
         });
       });
     });
-    // 낱장 사진·첨부: 데이터에 기록된 파일 이름(fn)으로 원래 실을 찾아 붙임
+    // 낱장 사진·첨부: ① 데이터에 기록된 파일 이름(fn)으로 찾고 ② 없으면 파일 이름(동_층_실명_번호)으로 실을 찾아 붙임
+    // 아이패드 파일 앱은 한글 이름을 자모 분리(NFD)로 넘기기도 하고, 같은 이름이면 ' 2', ' (2)'를 붙이므로 정리해서 비교
+    var have = 0, miss = 0, missNames = [];
     chain = chain.then(function () {
       if (!media.length) return;
-      var idx = {};
-      S.projects.forEach(function (p) { unitsOf(p).forEach(function (u) { var d = unitData(u) || {};
+      var nfc = function (n) { n = String(n || ''); try { n = n.normalize('NFC'); } catch (e) {} return n; };
+      var bare = function (n) { return nfc(n).replace(/ \(\d+\)(\.[^.]+)$/, '$1').replace(/ \d+(\.[^.]+)$/, '$1'); };
+      var idx = {}, pre = [], units = {}, touched = {};
+      var put = function (k, v) { (idx[k] = idx[k] || []).push(v); };
+      var order = [];
+      S.projects.forEach(function (p) { unitsOf(p).forEach(function (u) { order.push(u); }); });
+      order.sort(function (a, b) { var w = function (u) { return u === S.project ? 0 : lastImported.indexOf(baseId(u)) >= 0 ? 1 : 2; }; return w(a) - w(b); });
+      order.forEach(function (u) { var d = unitData(u); if (!d) return; units[u] = d;
         ['rooms', 'frooms', 'orooms'].forEach(function (k) { var R = d[k] || {}; Object.keys(R).forEach(function (id) { var r = R[id];
-          (r.photos || []).forEach(function (ph) { if (ph.fn) idx[ph.fn] = idx[ph.fn] || []; if (ph.fn) idx[ph.fn].push({ u: u, r: r, ph: ph }); });
-          (r.files || []).forEach(function (ph) { if (ph.fn) idx[ph.fn] = idx[ph.fn] || []; if (ph.fn) idx[ph.fn].push({ u: u, r: r, ph: ph, file: true }); });
+          (r.photos || []).forEach(function (ph) { [ph.fn, ph.name].forEach(function (nm) { if (nm) put(nfc(nm), { u: u, r: r, ph: ph }); }); });
+          (r.files || []).forEach(function (ph) { if (ph.fn) put(nfc(ph.fn), { u: u, r: r, ph: ph, file: true }); });
+          var base = r.out ? ['외부_' + r.name + '_', '외부환경_' + r.name + '_'] : [(r.fac ? '시설_' : '') + r.bldg + '_' + (r.floor === COMMON ? '' : r.floor + '_') + r.name + '_', r.bldg + '_' + (r.floor === COMMON ? '' : r.floor + '_') + r.name + '_'];
+          base.forEach(function (bs) { pre.push({ u: u, r: r, p: nfc(safe(bs)) }); pre.push({ u: u, r: r, p: nfc(safe('실명판_' + bs)), sign: true }); });
         }); });
-      }); });
-      var c2 = Promise.resolve(), k = 0, miss = 0;
+      });
+      pre.sort(function (a, b) { return b.p.length - a.p.length; }); // 긴 이름 먼저 (복도 / 복도-2 구분)
+      var store = function (f, h, buf) {
+        var blob = new Blob([buf], { type: f.type || (h.file ? (h.ph.type || '') : 'image/jpeg') });
+        if (h.u === S.project) localUrls[h.ph.key] = URL.createObjectURL(blob);
+        photos++;
+        var rec = { key: h.ph.key, project: h.u, roomId: h.r.id, name: h.ph.name, blob: blob };
+        if (h.file) { rec.kind = 'file'; rec.type = h.ph.type || f.type || ''; } else rec.sign = !!h.ph.sign;
+        markSaved([h.ph.key]);
+        return idbPut(rec);
+      };
+      var exists = function (key) { return localUrls[key] ? Promise.resolve(true) : idbGet(key).then(function (x) { return !!(x && x.blob); }); };
+      var c2 = Promise.resolve(), k = 0;
       media.forEach(function (f) { c2 = c2.then(function () {
         k++; prog(k, media.length, '사진 맞추는 중');
-        var hits = (idx[f.name] || []).filter(function (h) { return !localUrls[h.ph.key]; });
-        if (!(idx[f.name] || []).length) { miss++; return; }
-        if (!hits.length) return;
-        return f.arrayBuffer().then(function (buf) {
-          return Promise.all(hits.map(function (h) {
-            var blob = new Blob([buf], { type: f.type || (h.file ? (h.ph.type || '') : 'image/jpeg') });
-            localUrls[h.ph.key] = URL.createObjectURL(blob); photos++;
-            var rec = { key: h.ph.key, project: h.u, roomId: h.r.id, name: h.ph.name, blob: blob };
-            if (h.file) { rec.kind = 'file'; rec.type = h.ph.type || f.type || ''; } else rec.sign = !!h.ph.sign;
-            markSaved([h.ph.key]);
-            return idbPut(rec);
-          }));
-        });
+        var n1 = nfc(f.name), n2 = bare(f.name), list = idx[n1] || idx[n2] || [];
+        if (list.length) {
+          return Promise.all(list.map(function (h) { return exists(h.ph.key).then(function (ok) { return ok ? null : h; }); })).then(function (hs) {
+            hs = hs.filter(Boolean); if (!hs.length) { have++; return; }
+            var seen = {}; hs = hs.filter(function (h) { if (seen[h.ph.key]) return false; seen[h.ph.key] = 1; return true; });
+            return f.arrayBuffer().then(function (buf) { return Promise.all(hs.map(function (h) { return store(f, h, buf); })); });
+          });
+        }
+        // ② 파일 이름으로 실 찾기 → 그 실에 새 사진으로 추가
+        var hit = null;
+        for (var i = 0; i < pre.length; i++) { var x = pre[i]; if (n2.indexOf(x.p) === 0 && /^\d+\.(jpe?g|png|heic)$/i.test(n2.slice(x.p.length))) { hit = x; break; } }
+        if (!hit) { miss++; if (missNames.length < 3) missNames.push(n1); return; }
+        var ph = { key: 'p' + Date.now().toString(36) + k + Math.random().toString(36).slice(2, 5), name: n2, fn: n2 };
+        if (hit.sign) ph.sign = true;
+        hit.r.photos = hit.r.photos || []; hit.r.photos.push(ph); touched[hit.u] = 1;
+        return f.arrayBuffer().then(function (buf) { return store(f, { u: hit.u, r: hit.r, ph: ph }, buf); });
       }); });
-      return c2.then(function () { if (miss) toast('맞는 실을 못 찾은 파일 ' + miss + '개 (데이터 파일을 같이 골라 주세요)', 4000); });
+      return c2.then(function () {
+        Object.keys(touched).forEach(function (u) { if (u === S.project) saveLocal(); else lsSet('rc:p:' + u, units[u]); });
+      });
     });
     return chain.then(function () {
       // 불러온 프로젝트를 바로 열기 (PC에서 처음 불러올 때 빈 화면으로 남던 문제)
@@ -2029,7 +2055,7 @@ function importBackup(input) {
       if (go) { saveLocal(); switchProject(go); }
       render();
       var names = lastImported.map(function (id) { var p = projectInfo(id); return p ? p.name : id; }).join(', ');
-      return { files: [], msg: '프로젝트 ' + names + ' · 실 ' + rooms + '개 · 사진 ' + photos + '장 반영' };
+      return { files: [], msg: (names ? '프로젝트 ' + names + ' · 실 ' + rooms + '개 · ' : '') + '사진 ' + photos + '장 반영' + (have ? ' · 이미 있는 사진 ' + have + '장' : '') + (miss ? ' · 맞는 실을 못 찾은 파일 ' + miss + '개 (예: ' + missNames.join(', ') + ')' : '') };
     });
   });
 }

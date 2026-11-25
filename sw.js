@@ -1,6 +1,6 @@
 // 현장심사 실별 점검 - 오프라인 캐시
 // 앱을 고친 뒤에는 아래 버전 숫자를 하나 올려야 아이패드에 새 버전이 반영됩니다.
-var VERSION = 'RCA-v5';
+var VERSION = 'RCA-v6';
 var FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
