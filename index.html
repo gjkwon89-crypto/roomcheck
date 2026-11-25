@@ -63,7 +63,7 @@ table.st thead th{background:#4B5563;color:#fff;font-weight:700;text-align:cente
 .camerr{position:absolute;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff;text-align:center;padding:24px;font-size:15px}
 .hb.syscam{min-height:40px;font-size:12px;color:#4B5563}
 .hb.allp{min-height:40px;font-weight:700}
-.gal{max-width:1000px!important;width:96vw}.galg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:76vh;overflow:auto}
+.gal{max-width:1000px!important;width:96vw}.gi.sel{border:3px solid #2563EB;padding:2px;background:#EFF6FF}.gi{position:relative}.gi b.ck{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:12px;background:#2563EB;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}.mvl{max-height:60vh;overflow:auto;display:flex;flex-direction:column;gap:4px}.mvl h4{margin:8px 0 2px;font-size:12px;color:#6B7280}.mvl .hb{justify-content:flex-start;text-align:left}.galg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:76vh;overflow:auto}
 .gi{display:flex;flex-direction:column;gap:3px;padding:4px;border:1px solid #CBD5E1;border-radius:8px;background:#fff}.gi img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:5px;background:#111}.gi em{font-style:normal;font-size:10.5px;color:#374151;word-break:break-all;text-align:left}
 .lb.gtg{min-height:22px;font-size:11px;padding:0 8px;margin-left:6px}
 table.gd{border-collapse:collapse;width:100%;font-size:11.5px;background:#fff}table.gd th,table.gd td{border:1px solid #E2E8F0;padding:2px 6px;text-align:center;vertical-align:top}table.gd th{background:#E2E8F0;color:#1F2937}
@@ -107,7 +107,7 @@ aside{width:320px;flex:0 0 auto;display:flex;flex-direction:column;background:#f
 .room .nm span{font-size:11px;color:#4B5563;overflow:hidden;text-overflow:ellipsis}
 .room.two .nm{flex-direction:column;align-items:flex-start;gap:1px;white-space:normal}.room.two .nm span{line-height:1.3}
 .pill{flex:0 0 auto;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
-.pill.done{background:#2563EB;color:#fff;margin-left:4px}.hb.done{background:#2563EB;color:#fff;border-color:#2563EB}.pill.ng{background:#FFEDD5;color:#9A3412}.pill.ok{background:#F3F4F6;color:#374151}.pill.fix{background:#DCFCE7;color:#166534}
+.pw{flex:0 0 auto;display:flex;align-items:center;gap:3px}.pill.done{background:#16A34A;color:#fff;padding:1px 6px}.hb.done{background:#16A34A;color:#fff;border-color:#16A34A}.pill.ng{background:#FFEDD5;color:#9A3412}.pill.ok{background:#F3F4F6;color:#374151}.pill.fix{background:#DCFCE7;color:#166534}
 .ofc h3{margin-bottom:6px}.of{display:flex;align-items:flex-start;gap:10px;padding:5px 0;border-top:1px solid #F1F5F9}.of:first-of-type{border-top:0}.of>.l{flex:0 0 220px;font-size:12.5px;font-weight:600;color:#111827;line-height:1.3;padding-top:7px}.of>.l small{display:block;font-weight:400;color:#6B7280;font-size:10.5px}.of .optrow{flex:1 1 auto;flex-wrap:wrap;row-gap:4px}.needs{margin:6px 0 0;font-size:12px;color:#B45309;font-weight:600}.ocnt{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#374151;margin-right:4px}.ocnt input{width:56px;height:32px;border:1px solid #CBD5E1;border-radius:6px;padding:0 6px;font-size:14px}
 .satth{display:flex;gap:8px;flex-wrap:wrap}.satth img{height:120px;border-radius:6px;border:1px solid #E5E7EB;object-fit:cover}.satth figure{margin:0;text-align:center}.satth figcaption{font-size:11px;color:#4B5563}.satbox{width:min(96vw,1200px);max-width:none}.satwrap{display:flex;justify-content:center;overflow:auto;max-height:calc(var(--app-h,100vh) - 170px)}.satwrap canvas{border:1px solid #CBD5E1;border-radius:4px;touch-action:none;background:#F3F4F6}.hb.sw.on{outline:2px solid #1B2A41}
 .facgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.facgrid .ab{min-height:44px}
@@ -725,7 +725,7 @@ function setOutCount(group, n) {
 function outAside() {
   var list = outList().map(function (r) {
     var n = defsOf(r).filter(function (x) { return !x.rec; }).length;
-    return btn('room two' + (r.id === S.cur ? ' on' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(((outSec(r.type) || {}).sub || '') + ' · 사진 ' + r.photos.length) + '</span></span><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>' + doneTag(r),
+    return btn('room two' + (r.id === S.cur ? ' on' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(((outSec(r.type) || {}).sub || '') + ' · 사진 ' + r.photos.length) + '</span></span><span class="pw"><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>' + doneTag(r) + '</span>',
       function () { S.cur = r.id; render(); });
   }).join('');
   return '<aside><div class="ahd"><span class="tt"><span class="bchip">외부환경</span>학교 전체 (' + outList().length + ')</span></div><div class="list">' + list + '</div>' +
@@ -941,6 +941,7 @@ function idbAll() {
   });
 }
 function idbPut(v) { memPhotos[v.key] = v; if (!idb) return Promise.resolve(false); return new Promise(function (res) { try { var tx = idb.transaction('photos', 'readwrite'); tx.objectStore('photos').put(v, v.key); tx.oncomplete = function () { res(true); }; tx.onerror = function () { res(false); }; tx.onabort = function () { res(false); }; } catch (e) { res(false); } }); }
+function idbGet(k) { if (memPhotos[k] || !idb) return Promise.resolve(memPhotos[k] || null); return new Promise(function (res) { try { var q = idb.transaction('photos').objectStore('photos').get(k); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); }; } catch (e) { res(null); } }); }
 function idbDel(k) { delete memPhotos[k]; if (!idb) return Promise.resolve(); return new Promise(function (res) { try { var tx = idb.transaction('photos', 'readwrite'); tx.objectStore('photos').delete(k); tx.oncomplete = res; tx.onerror = res; } catch (e) { res(); } }); }
 var localUrls = {};
 
@@ -1142,7 +1143,7 @@ function aside() {
   var list = h.map(function (r) {
     var n = defsOf(r).filter(function (x) { return !x.rec; }).length;
     var meta = (r.ocr ? '가명칭 · ' : '') + r.type + (!r.fac && isGeneral(r.type) && r.type !== '계단' ? ' · 문 ' + r.doors.length + '개' : '') + ' · 사진 ' + r.photos.length;
-    return btn('room' + (r.id === S.cur ? ' on' : '') + (S.pick && r.id !== S.pick ? ' pick' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(meta) + '</span></span><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>' + doneTag(r),
+    return btn('room' + (r.id === S.cur ? ' on' : '') + (S.pick && r.id !== S.pick ? ' pick' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(meta) + '</span></span><span class="pw"><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>' + doneTag(r) + '</span>',
       function () { if (S.pick) { pickFrom(r); return; } S.cur = r.id; S.door = 0; S.confirmDel = false; render(); });
   }).join('');
   return '<aside><div class="ahd"><span class="tt"><span class="bchip" title="' + esc(S.bldg) + '">' + esc(S.bldg) + '</span>' + esc(S.floor === COMMON ? (S.mod === 'facility' ? '외부 (동 전체)' : '외벽 (동 전체)') : S.floor) + ' (' + h.length + ')</span>' +
@@ -1502,20 +1503,74 @@ function openCam(r) {
     }, 'image/jpeg', 0.92);
   };
 }
-function openGallery(r) {
-  var m = document.getElementById('modal');
-  m.innerHTML = '<div class="modal" role="dialog" aria-label="전체 사진"><div class="box wide gal"><div class="row" style="justify-content:space-between;margin-bottom:6px"><h3 style="margin:0;font-size:16px">' + esc(r.name) + ' · 사진 ' + r.photos.length + '장</h3><button type="button" class="hb dark" id="gc">닫기</button></div><div class="galg">' +
-    r.photos.map(function (p, i) { var u = localUrls[p.key]; return '<button type="button" class="gi" data-gi="' + i + '">' + (u ? '<img alt="" src="' + esc(u) + '">' : '<span>불러올 수 없음</span>') + '<em>' + esc(p.name) + '</em></button>'; }).join('') + '</div></div></div>';
+// 전체 사진 · '선택'을 누르면 여러 장 골라 다른 실로 옮기기
+function openGallery(r, selMode, sel) {
+  var m = document.getElementById('modal'); sel = sel || {};
+  var ns = Object.keys(sel).length;
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="전체 사진"><div class="box wide gal"><div class="row" style="justify-content:space-between;margin-bottom:6px"><h3 style="margin:0;font-size:16px">' + esc(r.name) + ' · 사진 ' + r.photos.length + '장</h3><div class="row" style="gap:6px">' +
+    (selMode ? '<span class="note">' + ns + '장 선택</span><button type="button" class="hb" id="gall">전체 선택</button><button type="button" class="hb blue" id="gmv"' + (ns ? '' : ' disabled') + '>다른 실로 옮기기</button><button type="button" class="hb" id="gx">선택 취소</button>'
+      : '<button type="button" class="hb" id="gs">선택해서 옮기기</button>') + '<button type="button" class="hb dark" id="gc">닫기</button></div></div>' +
+    (selMode ? '<p class="note" style="margin:0 0 6px">옮길 사진을 눌러 고르세요.</p>' : '') + '<div class="galg">' +
+    r.photos.map(function (p, i) { var u = localUrls[p.key]; return '<button type="button" class="gi' + (sel[p.key] ? ' sel' : '') + '" data-gi="' + i + '">' + (sel[p.key] ? '<b class="ck">✓</b>' : '') + (u ? '<img alt="" src="' + esc(u) + '">' : '<span>불러올 수 없음</span>') + '<em>' + esc(p.name) + '</em></button>'; }).join('') + '</div></div></div>';
   document.getElementById('gc').onclick = function () { m.innerHTML = ''; };
-  Array.prototype.forEach.call(m.querySelectorAll('[data-gi]'), function (el) { el.onclick = function () { openPhoto(r, r.photos[+el.getAttribute('data-gi')], true); }; });
+  if (selMode) {
+    document.getElementById('gx').onclick = function () { openGallery(r); };
+    document.getElementById('gall').onclick = function () { var all = {}; r.photos.forEach(function (p) { all[p.key] = 1; }); openGallery(r, true, ns === r.photos.length ? {} : all); };
+    document.getElementById('gmv').onclick = function () { openMoveTo(r, r.photos.filter(function (p) { return sel[p.key]; })); };
+  } else document.getElementById('gs').onclick = function () { openGallery(r, true, {}); };
+  Array.prototype.forEach.call(m.querySelectorAll('[data-gi]'), function (el) { el.onclick = function () {
+    var p = r.photos[+el.getAttribute('data-gi')];
+    if (selMode) { if (sel[p.key]) delete sel[p.key]; else sel[p.key] = 1; openGallery(r, true, sel); }
+    else openPhoto(r, p, true);
+  }; });
+}
+// 옮길 실 고르기: 같은 분야의 실 목록 (지금 층 먼저)
+function openMoveTo(r, list) {
+  if (!list.length) return;
+  var m = document.getElementById('modal');
+  var rooms = Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).filter(function (x) { return x.id !== r.id; });
+  var key = function (x) { return x.out ? '외부환경' : x.bldg + ' ' + (x.floor === COMMON ? (x.fac ? '외부' : '외벽') : x.floor); };
+  var here0 = key(r), groups = {}, order = [];
+  rooms.sort(function (a, b) { return a.bldg === b.bldg ? (floorNum(a.floor) - floorNum(b.floor) || a.order - b.order) : (a.bldg < b.bldg ? -1 : 1); })
+    .forEach(function (x) { var k = key(x); if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(x); });
+  order.sort(function (a, b) { return (a === here0 ? 0 : 1) - (b === here0 ? 0 : 1); });
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="옮길 실 고르기"><div class="box"><div class="row" style="justify-content:space-between;margin-bottom:4px"><h3 style="margin:0;font-size:16px">사진 ' + list.length + '장 옮기기</h3><button type="button" class="hb" id="mvb">← 뒤로</button></div>' +
+    '<p class="note" style="margin:0">' + esc(r.name) + ' → 옮길 실을 고르세요. 사진 이름은 옮긴 실 이름으로 바뀝니다.</p><div class="mvl">' +
+    (order.length ? order.map(function (k) { return '<h4>' + esc(k) + (k === here0 ? ' (지금 층)' : '') + '</h4>' + groups[k].map(function (x) { return '<button type="button" class="hb" data-mv="' + esc(x.id) + '">' + esc(x.name) + ' <span class="note">· 사진 ' + x.photos.length + '</span></button>'; }).join(''); }).join('') : '<p class="note">옮길 수 있는 다른 실이 없습니다.</p>') +
+    '</div></div></div>';
+  document.getElementById('mvb').onclick = function () { var sel = {}; list.forEach(function (p) { sel[p.key] = 1; }); openGallery(r, true, sel); };
+  Array.prototype.forEach.call(m.querySelectorAll('[data-mv]'), function (b) { b.onclick = function () { movePhotos(r, S.rooms[b.getAttribute('data-mv')], list); }; });
+}
+function movePhotos(r, t, list) {
+  if (!t) return;
+  var keys = {}; list.forEach(function (p) { keys[p.key] = 1; });
+  r.photos = r.photos.filter(function (p) { return !keys[p.key]; });
+  var saved = savedKeys();
+  var jobs = list.map(function (p) {
+    var n = t.photos.filter(function (x) { return !!x.sign === !!p.sign; }).length + 1;
+    var nm = photoFileName(t, n, p.sign);
+    t.photos.push(Object.assign({}, p, { name: nm, fn: undefined }));
+    delete saved[p.key]; // 새 실 이름으로 다시 저장되도록
+    return idbGet(p.key).then(function (x) {
+      if (!x) return; x.roomId = t.id; x.name = nm; return idbPut(x);
+    });
+  });
+  lsSet('rc:photoSaved', saved);
+  t.photos.forEach(function (p) { if (p.fn === undefined) delete p.fn; });
+  markDirty(r.id); markDirty(t.id);
+  Promise.all(jobs).then(function () {
+    document.getElementById('modal').innerHTML = ''; S.cur = t.id; S.bldg = t.out ? S.bldg : t.bldg; if (!t.out) S.floor = t.floor; render();
+    toast('사진 ' + list.length + '장을 ' + t.name + '(으)로 옮겼습니다');
+  });
 }
 function openPhoto(r, p, fromGallery) {
   var m = document.getElementById('modal'), u = localUrls[p.key];
   m.innerHTML = '<div class="modal" role="dialog" aria-label="사진 보기"><div class="box wide">' +
     '<h3 style="margin:0 0 6px;font-size:14px;word-break:break-all">' + esc(p.name) + '</h3>' +
     (u ? '<img class="sign-img" style="max-height:70vh" alt="" src="' + esc(u) + '">' : '<p class="note">사진을 불러올 수 없습니다.</p>') +
-    '<div class="row" style="justify-content:space-between"><button type="button" class="hb red" id="pd">이 사진 삭제</button><button type="button" class="hb dark" id="pc">닫기</button></div></div></div>';
+    '<div class="row" style="justify-content:space-between"><button type="button" class="hb red" id="pd">이 사진 삭제</button><div class="row" style="gap:6px"><button type="button" class="hb blue" id="pm">다른 실로 옮기기</button><button type="button" class="hb dark" id="pc">닫기</button></div></div></div></div>';
   document.getElementById('pc').onclick = function () { if (fromGallery) openGallery(r); else m.innerHTML = ''; };
+  document.getElementById('pm').onclick = function () { openMoveTo(r, [p]); };
   document.getElementById('pd').onclick = function () {
     if (this.dataset.sure !== '1') { this.dataset.sure = '1'; this.textContent = '한 번 더 누르면 삭제'; return; }
     r.photos = r.photos.filter(function (x) { return x.key !== p.key; });
