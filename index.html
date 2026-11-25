@@ -949,7 +949,13 @@ function scheduleFlush() {}
 function subscribe() {}
 function markDirty(id) { var r = S.rooms[id]; if (r) { r.updatedAt = new Date().toISOString(); } touchData(); saveLocal(); }
 function markSite() { touchData(); saveLocal(); }
-function touchData() { var now = new Date().toISOString(); lsSet('rc:dirtyAt', now); if (S.site) S.site.modAt = now; }
+function touchData() { var now = new Date().toISOString(); lsSet('rc:dirtyAt', now); lsSet('rc:dirtyAt:' + (S.mod || 'indoor'), now); if (S.site) S.site.modAt = now; }
+// 분야별 저장 상태 (예전 기록은 실내환경안전으로 간주)
+var MOD_NAME = { indoor: '실내환경안전', facility: '시설안전', outdoor: '외부환경안전' }, MOD_SET = { indoor: 'rooms', facility: 'frooms', outdoor: 'orooms' };
+function bAtOf(m) { return lsGet('rc:backupAt:' + m) || (m === 'indoor' ? lsGet('rc:backupAt') : null); }
+function dAtOf(m) { return lsGet('rc:dirtyAt:' + m) || (['indoor', 'facility', 'outdoor'].some(function (k) { return lsGet('rc:dirtyAt:' + k); }) ? null : lsGet('rc:dirtyAt')); }
+function setBackupAt(m) { var now = new Date().toISOString(); (m ? [m] : ['indoor', 'facility', 'outdoor']).forEach(function (k) { lsSet('rc:backupAt:' + k, now); }); lsSet('rc:backupAt', now); }
+function inMod(r, m) { return m === 'facility' ? !!r.fac : m === 'outdoor' ? !!r.out : !r.fac && !r.out; }
 function projectInfo(id) { id = baseId(id); for (var i = 0; i < S.projects.length; i++) if (S.projects[i].id === id) return S.projects[i]; return null; }
 // ───────────── 보완차수 · 프로젝트마다 최초심사(0) → 1차 보완 → 2차 보완 … · 차수마다 데이터 따로 (저장 키 rc:p:프로젝트id@차수)
 function baseId(id) { return id ? String(id).split('@')[0] : id; }
@@ -1073,11 +1079,11 @@ function render() {
   var app = document.getElementById('app');
   if (!S.project) { app.innerHTML = topbar() + '<div class="empty"><div><p style="font-size:16px;font-weight:700">점검할 프로젝트를 고르거나 새로 만드세요</p>' + btn('hb blue', '+ 새 프로젝트', openNewProject) + '</div></div>'; return; }
   var html = topbar();
-  if (S.mod !== 'indoor' && S.view !== 'input') html += modPage();
+  if (S.view === 'table') html += tablePage();
+  else if (S.mod !== 'indoor' && S.view !== 'input') html += modPage();
   else if (S.mod === 'outdoor') { ensureOut(); if (!cur()) S.cur = outList()[0].id; html += pickBar() + delAllBar() + '<div class="body">' + outAside() + mainPanel() + '</div>'; }
   else if (S.view === 'input' && !S.bldg) html += locbar() + '<div class="empty"><div><p style="font-size:16px;font-weight:700;margin:0 0 6px">먼저 동을 추가하세요</p><p class="note" style="margin:0 0 12px">동 이름(예: 본관, 신관, 다목적강당)을 입력하면 1층부터 점검을 시작할 수 있습니다.</p>' + btn('hb blue', '+ 동 추가', openNewBldg) + '</div></div>';
   else if (S.view === 'input') html += locbar() + pickBar() + delAllBar() + delFloorBar() + delBldgBar() + '<div class="body">' + aside() + mainPanel() + '</div>';
-  else if (S.view === 'table') html += tablePage();
   else if (S.view === 'score') html += scorePage();
   else html += resultPage();
   var sc = document.querySelector('.scroll'), st = sc ? sc.scrollTop : 0;
@@ -1098,10 +1104,10 @@ function modPage() {
 }
 function topbar() {
   var label = '이 기기에 저장' + (S.persist === false ? ' (보호 안 됨)' : ''), bg = 'background:#E0F2FE;color:#075985';
-  var bAt = lsGet('rc:backupAt'), dAt = lsGet('rc:dirtyAt');
+  var bAt = bAtOf(S.mod), dAt = dAtOf(S.mod);
   var need = dAt && (!bAt || dAt > bAt);
-  var un = unsavedCount(); need = need || un > 0;
-  var bLabel = (bAt ? '저장 ' + shortTime(bAt) : '저장 안 함') + (need ? (un ? ' · 사진 ' + un + '장 미저장' : ' · 저장 필요') : '');
+  var un = unsavedCount(S.mod); need = need || un > 0;
+  var bLabel = (MOD_NAME[S.mod] || '') + ' ' + (bAt ? '저장 ' + shortTime(bAt) : '저장 안 함') + (need ? (un ? ' · 사진 ' + un + '장 미저장' : ' · 저장 필요') : '');
   var bk = btn('bkp ' + (need ? 'need' : 'ok'), (need ? '⚠ ' : '✓ ') + esc(bLabel) + ' · 저장/불러오기', openSavePanel);
   var inst = (IS_IOS && !IS_STANDALONE) ? '<div class="install"><b>설치해서 쓰세요:</b> Safari 공유 버튼(□↑) → <b>홈 화면에 추가</b>. 홈 화면 앱과 Safari는 데이터가 따로 저장되니, 처음부터 홈 화면 아이콘으로만 사용하세요.</div>' : '';
   var opts = S.projects.map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === baseId(S.project) ? ' selected' : '') + '>' + esc(p.name) + '</option>'; }).join('');
@@ -1692,11 +1698,12 @@ function zipParts(parts, baseName, extra, prog, msg) {
 }
 function exportCsv() {
   var q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
-  var lines = [['동', '층', '실명', '가명칭', '종류', '영역', '문 개수', '사진 수', '미흡 수', '미흡 내용', '최종수정'].map(q).join(',')];
-  allRooms().forEach(function (r) { var d = defsOf(r); lines.push([r.bldg, r.floor, r.name, r.ocr ? 'Y' : '', r.type, isGeneral(r.type) ? areaLabel(r) : '', r.doors.length, r.photos.length, nd(d), d.map(function (x) { return x.where + ' · ' + x.what; }).join(' / '), localTime(r.updatedAt)].map(q).join(',')); });
-  var pn = (projectInfo(S.project) || {}).name || S.project;
-  var f = new File(['﻿' + lines.join('\r\n')], safe('현장심사_' + pn + '_' + stamp() + '.csv'), { type: 'text/csv' });
-  exportModal('CSV 내보내기', function () { return Promise.resolve({ files: [f] }); });
+  var mod = S.mod, cols = tableCols(mod), rows = mod === 'outdoor' ? (ensureOut(), outList()) : allRooms();
+  var lines = [cols.map(function (c) { return q(c[0]); }).join(',')];
+  rows.forEach(function (r) { var d = defsOf(r); lines.push(cols.map(function (c) { var v = c[1](r, d); return q(typeof v === 'string' ? v.replace(/\n/g, ' / ') : v); }).join(',')); });
+  var l = unitLabel(S.project);
+  var f = new File(['﻿' + lines.join('\r\n')], safe('현장심사_' + l.proj + '_' + l.round.replace(/\s/g, '') + '_' + MOD_NAME[mod] + '_' + stamp() + '.csv'), { type: 'text/csv' });
+  exportModal('CSV 내보내기 · ' + MOD_NAME[mod], function () { return Promise.resolve({ files: [f] }); });
 }
 function exportPhotos() {
   var pn = (projectInfo(S.project) || {}).name || S.project;
@@ -1717,28 +1724,28 @@ function backupJson() {
 // 사진 저장 여부: 공유/다운로드가 끝난 사진 key 목록 (다음엔 새 사진만)
 function savedKeys() { return lsGet('rc:photoSaved') || {}; }
 function markSaved(keys) { var m = savedKeys(); keys.forEach(function (k) { m[k] = 1; }); lsSet('rc:photoSaved', m); }
-function unsavedCount() { // 지금 프로젝트·차수에서 아직 파일 앱에 저장 안 한 사진·첨부 수
+function unsavedCount(mod) { // 지금 프로젝트·차수·분야에서 아직 파일 앱에 저장 안 한 사진·첨부 수
   var m = savedKeys(), n = 0, d = unitData(S.project) || {};
-  ['rooms', 'frooms', 'orooms'].forEach(function (k) { var R = d[k] || {}; Object.keys(R).forEach(function (id) { (R[id].photos || []).concat(R[id].files || []).forEach(function (ph) { if (ph.key && !m[ph.key] && localUrls[ph.key]) n++; }); }); });
+  [MOD_SET[mod || S.mod] || 'rooms'].forEach(function (k) { var R = d[k] || {}; Object.keys(R).forEach(function (id) { (R[id].photos || []).concat(R[id].files || []).forEach(function (ph) { if (ph.key && !m[ph.key] && localUrls[ph.key]) n++; }); }); });
   return n;
 }
 // ── 반자동 저장: 현장심사 / 프로젝트 / 최초심사(1차 보완…) / 1. 데이터 , 2. 사진/동 ──
 var SHARE_MAX = 100; // 한 번에 공유하는 사진 수 (많으면 공유창이 멈춤)
 function unitLabel(u) { var p = projectInfo(baseId(u)) || {}; return { proj: p.name || baseId(u), round: roundLabel(roundOf(u)) }; }
-function dataFileName(u) { var l = unitLabel(u); return safe('데이터_' + l.proj + '_' + l.round.replace(/\s/g, '') + '.json'); }
+function dataFileName(u, mod) { var l = unitLabel(u); return safe('데이터_' + l.proj + '_' + l.round.replace(/\s/g, '') + '_' + MOD_NAME[mod || 'indoor'] + '.json'); }
 function mkFile(parts, name, type) { try { return new File(parts, name, { type: type }); } catch (e) { var b = new Blob(parts, { type: type }); b.name = name; return b; } }
 // 데이터 저장: 항상 같은 파일 이름 → 파일 앱에서 '대치'하면 하나로 계속 최신
-function quickSaveData() {
-  saveLocal();
-  var u = S.project, d = { app: 'roomcheck', version: 2, savedAt: new Date().toISOString(), projects: [projectInfo(baseId(u))].filter(Boolean), data: {} };
-  d.data[u] = unitData(u);
-  var f = mkFile([JSON.stringify(d)], dataFileName(u), 'application/json');
-  var done = function () { lsSet('rc:backupAt', new Date().toISOString()); toast('데이터 저장했습니다'); render(); openSavePanel(); };
+function quickSaveData(mod) {
+  saveLocal(); mod = mod || S.mod;
+  var u = S.project, full = unitData(u) || {}, one = { site: full.site }, d = { app: 'roomcheck', version: 2, field: mod, savedAt: new Date().toISOString(), projects: [projectInfo(baseId(u))].filter(Boolean), data: {} };
+  one[MOD_SET[mod]] = full[MOD_SET[mod]] || {}; d.data[u] = one; // 이 분야 입력값만 (동·층 정보는 같이)
+  var f = mkFile([JSON.stringify(d)], dataFileName(u, mod), 'application/json');
+  var done = function () { setBackupAt(mod); toast(MOD_NAME[mod] + ' 데이터 저장했습니다'); render(); openSavePanel(mod); };
   if (canShareFiles([f])) navigator.share({ files: [f], title: f.name }).then(done).catch(function (e) { if (!e || e.name !== 'AbortError') exportModal('데이터 저장', function () { return Promise.resolve({ files: [f], after: done }); }); });
   else exportModal('데이터 저장', function () { return Promise.resolve({ files: [f], after: done }); });
 }
 // 사진 파일 이름(한 번 정해지면 ph.fn 으로 고정 → 다시 저장해도 같은 이름) · 폴더는 동별(외부환경은 '외부')
-function mediaFolder(r) { return r.out ? '외부' : (r.bldg || '기타'); }
+function mediaFolder(r) { return r.out ? '' : (r.bldg || '기타'); } // 외부환경안전은 동 구분 없이 2. 사진 바로 아래
 function assignNames(u) {
   var d = unitData(u) || {}, used = {}, changed = false, rooms = [];
   ['rooms', 'frooms', 'orooms'].forEach(function (k) { var R = d[k] || {}; Object.keys(R).forEach(function (id) { rooms.push(R[id]); }); });
@@ -1762,8 +1769,8 @@ function assignNames(u) {
   return rooms;
 }
 // 동별 '아직 저장 안 한' 사진 묶음 (100장씩)
-function newBatches(u) {
-  var rooms = assignNames(u), m = savedKeys();
+function newBatches(u, mod) {
+  var rooms = assignNames(u).filter(function (r) { return inMod(r, mod); }), m = savedKeys();
   return idbAll().then(function (list) {
     var blob = {}; list.forEach(function (x) { if (x.project === u && x.blob) blob[x.key] = x; });
     var by = {}, order = [];
@@ -1775,46 +1782,50 @@ function newBatches(u) {
       });
     });
     var out = [];
-    order.sort(function (a, b) { return a === '외부' ? 1 : b === '외부' ? -1 : 0; }).forEach(function (dir) {
+    order.forEach(function (dir) {
       var all = by[dir], n = Math.ceil(all.length / SHARE_MAX);
       for (var i = 0; i < n; i++) out.push({ dir: dir, idx: i + 1, of: n, items: all.slice(i * SHARE_MAX, (i + 1) * SHARE_MAX) });
     });
     return out;
   });
 }
-function shareBatch(bt, btn) {
+function shareBatch(bt, btn, mod) {
   var files = bt.items.map(function (x) { return x.file; });
-  var done = function () { markSaved(bt.items.map(function (x) { return x.key; })); toast(bt.dir + ' 사진 ' + files.length + '장 저장했습니다'); render(); openSavePanel(); };
+  var done = function () { markSaved(bt.items.map(function (x) { return x.key; })); toast((bt.dir || '외부환경') + ' 사진 ' + files.length + '장 저장했습니다'); render(); openSavePanel(mod); };
   if (canShareFiles(files)) {
     btn.disabled = true; btn.firstChild.textContent = '공유 화면 여는 중…';
     navigator.share({ files: files }).then(done).catch(function (e) { btn.disabled = false; btn.firstChild.textContent = '다시 시도'; if (!e || e.name !== 'AbortError') toast('공유가 안 됐습니다. 다시 눌러 보세요'); });
   } else { // PC 등: ZIP으로 받기
-    exportModal(bt.dir + ' 사진', function (prog) { return makeZip(bt.items.map(function (x) { return { name: x.file.name, blob: x.file }; }), function (a, b) { prog(a, b, '묶는 중'); }).then(function (z) { return { files: [mkFile([z], safe(bt.dir + '_사진_' + stamp()) + '.zip', 'application/zip')], after: done }; }); });
+    exportModal((bt.dir || '외부환경') + ' 사진', function (prog) { return makeZip(bt.items.map(function (x) { return { name: x.file.name, blob: x.file }; }), function (a, b) { prog(a, b, '묶는 중'); }).then(function (z) { return { files: [mkFile([z], safe((bt.dir || '외부환경') + '_사진_' + stamp()) + '.zip', 'application/zip')], after: done }; }); });
   }
 }
-// 저장 · 불러오기 화면 (상단 저장 버튼)
-function openSavePanel() {
-  saveLocal();
-  var u = S.project, l = unitLabel(u), m = document.getElementById('modal');
-  var bAt = lsGet('rc:backupAt'), dAt = lsGet('rc:dirtyAt'), need = dAt && (!bAt || dAt > bAt);
-  var path = '<b>현장심사 / ' + esc(l.proj) + ' / ' + esc(l.round) + '</b>';
-  m.innerHTML = '<div class="modal" role="dialog" aria-label="저장 · 불러오기"><div class="box wide"><h3 style="margin:0 0 2px;font-size:16px">저장 · 불러오기</h3>' +
+// 저장 · 불러오기 화면 (상단 저장 버튼) · 분야별로 따로
+function openSavePanel(mod) {
+  saveLocal(); mod = MOD_NAME[mod] ? mod : S.mod;
+  var u = S.project, l = unitLabel(u), m = document.getElementById('modal'), fn = MOD_NAME[mod];
+  var bAt = bAtOf(mod), dAt = dAtOf(mod), need = dAt && (!bAt || dAt > bAt);
+  var path = '<b>현장심사 / ' + esc(l.proj) + ' / ' + esc(l.round) + ' / ' + esc(fn) + '</b>';
+  var tabs = ['facility', 'indoor', 'outdoor'].map(function (k) { var un = unsavedCount(k), b2 = bAtOf(k), d2 = dAtOf(k), nd2 = un > 0 || (d2 && (!b2 || d2 > b2));
+    return '<button type="button" class="hb' + (k === mod ? ' blue' : '') + '" data-svm="' + k + '">' + (nd2 ? '⚠ ' : '✓ ') + MOD_NAME[k] + '</button>'; }).join('');
+  m.innerHTML = '<div class="modal" role="dialog" aria-label="저장 · 불러오기"><div class="box wide"><h3 style="margin:0 0 6px;font-size:16px">저장 · 불러오기</h3>' +
+    '<div class="row" style="gap:6px;margin:0 0 8px">' + tabs + '</div>' +
     '<p class="note" style="margin:0 0 10px">저장 폴더: ' + path + ' (파일 앱 → 나의 iPad에 한 번만 만들어 두세요)</p>' +
-    '<div style="font-weight:800;font-size:13px;margin:0 0 4px">① 사진 → 2. 사진 / 동 폴더</div><div class="dl" id="svp"><p class="note" style="margin:0">새 사진 확인 중…</p></div>' +
+    '<div style="font-weight:800;font-size:13px;margin:0 0 4px">① 사진 → 2. 사진' + (mod === 'outdoor' ? ' 폴더' : ' / 동 폴더') + '</div><div class="dl" id="svp"><p class="note" style="margin:0">새 사진 확인 중…</p></div>' +
     '<div style="font-weight:800;font-size:13px;margin:10px 0 4px">② 데이터 → 1. 데이터 폴더 <span class="note" style="font-weight:400">· 마지막 ' + (bAt ? esc(shortTime(bAt)) : '없음') + (need ? ' · <b style="color:#9A3412">바뀐 입력 있음</b>' : ' · 최신') + '</span></div>' +
-    '<div class="dl"><button type="button" class="hb' + (need ? ' blue' : '') + '" id="sv1">데이터 저장 <span style="font-weight:400">· ' + esc(dataFileName(u)) + '</span></button></div>' +
-    '<p class="note" style="margin:4px 0 0">데이터 파일 이름은 늘 같습니다. 저장할 때 <b>"대치"</b>를 누르면 파일 하나가 계속 최신으로 바뀝니다.</p>' +
+    '<div class="dl"><button type="button" class="hb' + (need ? ' blue' : '') + '" id="sv1">' + esc(fn) + ' 데이터 저장 <span style="font-weight:400">· ' + esc(dataFileName(u, mod)) + '</span></button></div>' +
+    '<p class="note" style="margin:4px 0 0">데이터 파일 이름은 늘 같습니다. 저장할 때 <b>"대치"</b>를 누르면 파일 하나가 계속 최신으로 바뀝니다. 분야마다 따로 저장되며, 동·층 목록은 세 분야 파일에 모두 들어갑니다.</p>' +
     '<div style="font-weight:800;font-size:13px;margin:10px 0 4px">불러오기 (다른 기기·복원)</div>' +
-    '<div class="dl"><label class="hb" style="position:relative;overflow:hidden">파일 고르기 <span style="font-weight:400">· 1. 데이터의 파일 + 2. 사진의 사진들을 한꺼번에 선택</span><input type="file" accept=".json,.zip,image/*,application/pdf,application/json,application/zip" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
-    '<div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" class="hb" id="sv3" style="font-size:12px">전체 백업 ZIP (모든 프로젝트·사진)</button><button type="button" class="hb" id="svc">닫기</button></div></div></div>';
-  document.getElementById('sv1').onclick = quickSaveData;
+    '<div class="dl"><label class="hb" style="position:relative;overflow:hidden">파일 고르기 <span style="font-weight:400">· 1. 데이터의 파일 + 2. 사진의 사진들을 한꺼번에 선택 (분야 상관없음)</span><input type="file" accept=".json,.zip,image/*,application/pdf,application/json,application/zip" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
+    '<div class="row" style="justify-content:space-between;margin-top:10px"><button type="button" class="hb" id="sv3" style="font-size:12px">전체 백업 ZIP (모든 프로젝트·분야·사진)</button><button type="button" class="hb" id="svc">닫기</button></div></div></div>';
+  Array.prototype.forEach.call(m.querySelectorAll('[data-svm]'), function (b) { b.onclick = function () { openSavePanel(b.getAttribute('data-svm')); }; });
+  document.getElementById('sv1').onclick = function () { quickSaveData(mod); };
   document.getElementById('sv3').onclick = function () { exportBackup(); };
   document.getElementById('svc').onclick = function () { m.innerHTML = ''; render(); };
-  newBatches(u).then(function (bs) {
-    var box = document.getElementById('svp'); if (!box) return;
+  newBatches(u, mod).then(function (bs) {
+    var box = document.getElementById('svp'); if (!box || !m.querySelector('[data-svm="' + mod + '"].blue')) return;
     if (!bs.length) { box.innerHTML = '<p class="note" style="margin:0">✓ 새로 저장할 사진이 없습니다</p>'; return; }
-    box.innerHTML = bs.map(function (bt, i) { return '<button type="button" class="hb blue" data-bt="' + i + '"><span>' + esc(bt.dir) + ' 새 사진 ' + bt.items.length + '장' + (bt.of > 1 ? ' (' + bt.idx + '/' + bt.of + ')' : '') + '</span> <span style="font-weight:400">→ 2. 사진 / ' + esc(bt.dir) + '</span></button>'; }).join('');
-    Array.prototype.forEach.call(box.querySelectorAll('[data-bt]'), function (b) { b.onclick = function () { shareBatch(bs[+b.getAttribute('data-bt')], b); }; });
+    box.innerHTML = bs.map(function (bt, i) { return '<button type="button" class="hb blue" data-bt="' + i + '"><span>' + esc(bt.dir || '외부환경') + ' 새 사진 ' + bt.items.length + '장' + (bt.of > 1 ? ' (' + bt.idx + '/' + bt.of + ')' : '') + '</span> <span style="font-weight:400">→ 2. 사진' + (bt.dir ? ' / ' + esc(bt.dir) : '') + '</span></button>'; }).join('');
+    Array.prototype.forEach.call(box.querySelectorAll('[data-bt]'), function (b) { b.onclick = function () { shareBatch(bs[+b.getAttribute('data-bt')], b, mod); }; });
   });
 }
 // mode: true = 데이터만, 'new' = 아직 저장 안 한 사진만, 그 외 = 전체
@@ -1836,8 +1847,8 @@ function exportBackup(mode) {
       var extra = function (p) { return [{ name: 'backup.json', text: json }, { name: 'photos.json', text: JSON.stringify(p.map(function (e) { return { path: e.name, rec: e.rec }; })) }]; };
       return zipParts(parts, (dataOnly ? '현장심사_데이터백업_' : onlyNew ? '현장심사_새사진_' : '현장심사_백업_') + stamp(), extra, prog, '백업 만드는 중').then(function (files) {
         return { files: files, msg: dataOnly ? '입력값만 · 사진 제외' : '사진 ' + ents.length + '장' + (onlyNew ? ' (지난 저장 이후)' : ' 포함'),
-          afterPart: function (i) { markSaved(parts[i].map(function (e) { return e.rec.key; })); lsSet('rc:backupAt', new Date().toISOString()); render(); },
-          after: dataOnly ? function () { lsSet('rc:backupAt', new Date().toISOString()); } : null };
+          afterPart: function (i) { markSaved(parts[i].map(function (e) { return e.rec.key; })); if (i === parts.length - 1) setBackupAt(); render(); },
+          after: dataOnly ? function () { setBackupAt(); } : null };
       });
     });
   });
@@ -1964,22 +1975,30 @@ function importBackup(input) {
 }
 // 데이터 표
 function allRooms() { return Object.keys(S.rooms).map(function (k) { return S.rooms[k]; }).sort(function (a, b) { return a.bldg === b.bldg ? (floorNum(a.floor) - floorNum(b.floor) || a.order - b.order) : (a.bldg < b.bldg ? -1 : 1); }); }
+// 분야별 표 열: 실내환경안전은 영역·문, 시설안전은 동·층·실, 외부환경안전은 구분·항목
+function tableCols(mod) {
+  var com = [['사진', function (r) { return (r.photos || []).length; }, 'c'], ['미흡', function (r, d) { return nd(d); }, 'n'], ['미흡 내용', function (r, d) { return d.map(function (x) { return x.where + ' · ' + x.what; }).join('\n'); }, 'l'], ['최종수정', function (r) { return localTime(r.updatedAt); }]];
+  if (mod === 'outdoor') return [['구분', function (r) { return r.type; }], ['항목', function (r) { return r.name; }, 'b']].concat(com);
+  var loc = [['동', function (r) { return r.bldg; }], ['층', function (r) { return r.floor === COMMON ? (mod === 'facility' ? '외부' : '외벽') : r.floor; }], ['실명', function (r) { return r.name + (r.ocr ? ' (가명칭)' : ''); }, 'b'], ['종류', function (r) { return r.type; }]];
+  if (mod === 'facility') return loc.concat(com);
+  return loc.concat([['영역', function (r) { return isGeneral(r.type) ? areaLabel(r) : '-'; }], ['문', function (r) { return isGeneral(r.type) && r.type !== '계단' ? r.doors.length : '-'; }, 'c']], com);
+}
 function tablePage() {
-  var rows = allRooms();
+  var mod = S.mod, rows = mod === 'outdoor' ? (ensureOut(), outList()) : allRooms(), cols = tableCols(mod), fn = MOD_NAME[mod];
   var tr = rows.map(function (r) { var d = defsOf(r);
-    return '<tr><td>' + esc(r.bldg) + '</td><td>' + esc(r.floor) + '</td><td><b>' + esc(r.name) + '</b>' + (r.ocr ? ' <span class="note">(가명칭)</span>' : '') + '</td><td>' + esc(r.type) + '</td><td>' + esc(isGeneral(r.type) ? areaLabel(r) : '-') + '</td><td style="text-align:center">' + (isGeneral(r.type) && r.type !== '계단' ? r.doors.length : '-') +
-      '</td><td style="text-align:center">' + r.photos.length + '</td><td style="text-align:center;font-weight:700;color:' + (nd(d) ? '#9A3412' : '#166534') + '">' + nd(d) + '</td><td>' + d.map(function (x) { return esc(x.where + ' · ' + x.what); }).join('<br>') + '</td><td>' + esc(localTime(r.updatedAt)) + '</td></tr>'; }).join('');
-  var bAt = lsGet('rc:backupAt');
+    return '<tr>' + cols.map(function (c) { var v = c[1](r, d), t = esc(v == null ? '' : v).replace(/\n/g, '<br>');
+      return c[2] === 'c' ? '<td style="text-align:center">' + t + '</td>' : c[2] === 'n' ? '<td style="text-align:center;font-weight:700;color:' + (v ? '#9A3412' : '#166534') + '">' + t + '</td>' : c[2] === 'b' ? '<td><b>' + t + '</b></td>' : '<td>' + t + '</td>'; }).join('') + '</tr>'; }).join('');
+  var bAt = bAtOf(mod), un = unsavedCount(mod), bad = 0; rows.forEach(function (r) { bad += nd(defsOf(r)); });
   setTimeout(showUsage, 0);
-  return '<div class="page"><div class="row" style="margin-bottom:8px"><h2 style="margin:0;font-size:17px">데이터 표 · 백업</h2><span class="note">실 ' + rows.length + '개 · 마지막 백업: ' + (bAt ? esc(shortTime(bAt)) : '없음') + ' · <span id="usage"></span></span></div>' +
-    '<div class="card" style="padding:8px 12px;margin-bottom:10px"><div class="row" style="gap:8px">' + btn('hb blue', '저장 · 불러오기', openSavePanel) + btn('hb', '전체 백업 (모든 사진)', function () { exportBackup(); }) + btn('hb dark', 'CSV 내보내기 (이 프로젝트)', exportCsv) + btn('hb', '사진만 내보내기 (이 프로젝트)', exportPhotos) +
-    '<label class="hb" style="position:relative;overflow:hidden">백업 불러오기<input type="file" accept=".zip,.json,application/zip,application/json" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
-    '<p class="note" style="margin:6px 0 0">데이터와 사진은 이 앱 안에 저장됩니다. <b>홈 화면 아이콘을 지우면 함께 지워지니</b>, 작업이 끝나면 <b>저장 · 불러오기</b>에서 ① 동별 새 사진 → ② 데이터 순서로 파일 앱의 <b>현장심사 / 프로젝트 / 차수</b> 폴더에 저장하세요. CSV는 엑셀에서 열 수 있습니다.</p></div>' +
-    '<div style="overflow:auto"><table class="t"><thead><tr><th>동</th><th>층</th><th>실명</th><th>종류</th><th>영역</th><th>문</th><th>사진</th><th>미흡</th><th>미흡 내용</th><th>최종수정</th></tr></thead><tbody>' +
-    (tr || '<tr><td colspan="10" class="note">아직 데이터가 없습니다.</td></tr>') + '</tbody></table></div></div>';
+  return '<div class="page"><div class="row" style="margin-bottom:8px"><h2 style="margin:0;font-size:17px">' + esc(fn) + ' · 데이터 표 · 백업</h2><span class="note">' + (mod === 'outdoor' ? '항목 ' : '실 ') + rows.length + '개 · 미흡 ' + bad + '건 · 마지막 저장: ' + (bAt ? esc(shortTime(bAt)) : '없음') + (un ? ' · 사진 ' + un + '장 미저장' : '') + ' · <span id="usage"></span></span></div>' +
+    '<div class="card" style="padding:8px 12px;margin-bottom:10px"><div class="row" style="gap:8px">' + btn('hb blue', esc(fn) + ' 저장 · 불러오기', function () { openSavePanel(mod); }) + btn('hb dark', 'CSV 내보내기 (' + esc(fn) + ')', exportCsv) + btn('hb', '사진만 내보내기 (이 프로젝트)', exportPhotos) + btn('hb', '전체 백업 ZIP', function () { exportBackup(); }) +
+    '<label class="hb" style="position:relative;overflow:hidden">불러오기<input type="file" accept=".json,.zip,image/*,application/pdf,application/json,application/zip" multiple data-backup="1" style="position:absolute;inset:0;opacity:0"></label></div>' +
+    '<p class="note" style="margin:6px 0 0">데이터와 사진은 이 앱 안에 저장됩니다. <b>홈 화면 아이콘을 지우면 함께 지워지니</b>, 작업이 끝나면 <b>저장 · 불러오기</b>에서 분야별로 ① 새 사진 → ② 데이터 순서로 파일 앱의 <b>현장심사 / 프로젝트 / 차수 / 분야</b> 폴더에 저장하세요. CSV는 엑셀에서 열 수 있습니다.</p></div>' +
+    '<div style="overflow:auto"><table class="t"><thead><tr>' + cols.map(function (c) { return '<th>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    (tr || '<tr><td colspan="' + cols.length + '" class="note">아직 데이터가 없습니다.</td></tr>') + '</tbody></table></div></div>';
 }
 function nd(d) { return d.filter(function (x) { return !x.rec; }).length; } // 미흡 개수(권고사항 제외)
-function localTime(iso) { if (!iso) return ''; var d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0'); } // 초까지 넣어 같은 분에 다시 내보내도 파일 이름이 겹치지 않게
+function localTime(iso) { if (!iso) return ''; var d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
 function stamp() { var d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '_' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0'); }
 function safe(n) { return String(n).replace(/[\\/:*?"<>|]/g, '_'); }
 // ───────────── 동별 점수표 ─────────────
