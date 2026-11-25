@@ -107,7 +107,7 @@ aside{width:320px;flex:0 0 auto;display:flex;flex-direction:column;background:#f
 .room .nm span{font-size:11px;color:#4B5563;overflow:hidden;text-overflow:ellipsis}
 .room.two .nm{flex-direction:column;align-items:flex-start;gap:1px;white-space:normal}.room.two .nm span{line-height:1.3}
 .pill{flex:0 0 auto;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
-.pill.ng{background:#FFEDD5;color:#9A3412}.pill.ok{background:#F3F4F6;color:#374151}.pill.fix{background:#DCFCE7;color:#166534}
+.pill.done{background:#2563EB;color:#fff;margin-left:4px}.hb.done{background:#2563EB;color:#fff;border-color:#2563EB}.pill.ng{background:#FFEDD5;color:#9A3412}.pill.ok{background:#F3F4F6;color:#374151}.pill.fix{background:#DCFCE7;color:#166534}
 .ofc h3{margin-bottom:6px}.of{display:flex;align-items:flex-start;gap:10px;padding:5px 0;border-top:1px solid #F1F5F9}.of:first-of-type{border-top:0}.of>.l{flex:0 0 220px;font-size:12.5px;font-weight:600;color:#111827;line-height:1.3;padding-top:7px}.of>.l small{display:block;font-weight:400;color:#6B7280;font-size:10.5px}.of .optrow{flex:1 1 auto;flex-wrap:wrap;row-gap:4px}.needs{margin:6px 0 0;font-size:12px;color:#B45309;font-weight:600}.ocnt{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#374151;margin-right:4px}.ocnt input{width:56px;height:32px;border:1px solid #CBD5E1;border-radius:6px;padding:0 6px;font-size:14px}
 .satth{display:flex;gap:8px;flex-wrap:wrap}.satth img{height:120px;border-radius:6px;border:1px solid #E5E7EB;object-fit:cover}.satth figure{margin:0;text-align:center}.satth figcaption{font-size:11px;color:#4B5563}.satbox{width:min(96vw,1200px);max-width:none}.satwrap{display:flex;justify-content:center;overflow:auto;max-height:calc(var(--app-h,100vh) - 170px)}.satwrap canvas{border:1px solid #CBD5E1;border-radius:4px;touch-action:none;background:#F3F4F6}.hb.sw.on{outline:2px solid #1B2A41}
 .facgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.facgrid .ab{min-height:44px}
@@ -391,7 +391,7 @@ function isWc(t) { return WC_TYPES.indexOf(t) >= 0; }
 function isDisWc(t) { return isWc(t) && t.indexOf('장애인') === 0; } // 장애인화장실: 응급통신시설 배점 미반영
 var SIMPLE = { '옥상': [], '테라스': [], '외벽': [] };
 var MAIN_TYPES = ['개별실', '계단', '복도', '테라스', '도서관', '체육관'];
-var ROOF = '옥상층';
+var ROOF = '옥상층', LOBBY = '로비층'; // 로비층: 지하와 1층 사이
 var COMMON = '동 공통';
 var WC_TYPES = ['화장실(남)', '화장실(여)', '장애인화장실(남)', '장애인화장실(여)'];
 var DEFAULT_AREA = { '개별실': '교수학습영역', '도서관': '지원영역', '체육관': '지원영역', '복도': '공용영역', '계단': '공용영역' };
@@ -409,7 +409,7 @@ var BASE_NAME = { '샤워실(남)': '남자샤워실', '샤워실(여)': '여자
 
 function isGeneral(t) { return !SIMPLE[t]; }
 function newDoor() { return { shape: '미닫이', speed: '적용', pinch: '완충재', glass: '유리 없음', film: '미적용', sight: '적용', floorVis: '해당없음', step: '없음', protrude: '없음' }; }
-function newWin(f) { return { has: '있음', ground: f === '1층' ? '지상층' : '지상층 아님', measure: '없음' }; }
+function newWin(f) { return { has: '있음', ground: f === '1층' || f === LOBBY ? '지상층' : '지상층 아님', measure: '없음' }; }
 function newCor() { return { shape: 'ㅡ자형', type: '편복도', emerg: '없음', link: '연계', wSide: '1.8m 미만', wMid: '2.4m 미만', wSideU: '1.2m 이상', wMidU: '1.5m 이상', obst: '없음', step: '해당없음', eWall: '양호', eCol: '양호', eFurn: '양호' }; }
 function newStair() { return { nonslip: '설치', nonslipCare: '양호', edge: '적용', riser: '양호', tread: '양호', baluster: '양호', rail: '양호', top: '해당없음', wStair: '양호', wLand: '양호' }; }
 function rid() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -725,7 +725,7 @@ function setOutCount(group, n) {
 function outAside() {
   var list = outList().map(function (r) {
     var n = defsOf(r).filter(function (x) { return !x.rec; }).length;
-    return btn('room two' + (r.id === S.cur ? ' on' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(((outSec(r.type) || {}).sub || '') + ' · 사진 ' + r.photos.length) + '</span></span><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>',
+    return btn('room two' + (r.id === S.cur ? ' on' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(((outSec(r.type) || {}).sub || '') + ' · 사진 ' + r.photos.length) + '</span></span><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>' + doneTag(r),
       function () { S.cur = r.id; render(); });
   }).join('');
   return '<aside><div class="ahd"><span class="tt"><span class="bchip">외부환경</span>학교 전체 (' + outList().length + ')</span></div><div class="list">' + list + '</div>' +
@@ -873,7 +873,7 @@ function glassReport(rooms) {
   if (n) { var q = (cS + cA) / n; fin = cS === n ? 6 : q === 1 ? 4 : q >= 0.75 ? 3 : q >= 0.5 ? 2 : q >= 0.25 ? 1 : 0; }
   return { rows: rows.filter(function (f) { return f.total; }), tS: tS, tA: tA, tN: tN, n: n, cS: cS, cA: cA, final: fin };
 }
-function floorNum(f) { if (f === ROOF) return 9999; if (f === COMMON) return -9999; return f.charAt(0) === 'B' ? -parseInt(f.slice(1), 10) : parseInt(f, 10); }
+function floorNum(f) { f = String(f); if (f.indexOf(' ') > 0 && f !== COMMON) f = f.slice(f.lastIndexOf(' ') + 1); if (f === ROOF) return 9999; if (f === COMMON) return -9999; if (f === LOBBY) return 0.5; return f.charAt(0) === 'B' ? -parseInt(f.slice(1), 10) : parseInt(f, 10); }
 function fnum(f) { return f.charAt(0) === 'B' ? f : f.replace('층', ''); }
 
 // ───────────── 상태 · 로컬 저장 ─────────────
@@ -914,7 +914,7 @@ function flOf(b) {
   if (!st.floors[b]) st.floors[b] = { up: (st.up && st.up.length ? st.up.slice() : ['1층']), down: (st.down || []).slice(), roof: !!st.roof };
   return st.floors[b];
 }
-function floorOk(b, f) { var F = flOf(b); return f === COMMON || F.up.indexOf(f) >= 0 || F.down.indexOf(f) >= 0 || (F.roof && f === ROOF); }
+function floorOk(b, f) { var F = flOf(b); return f === COMMON || F.up.indexOf(f) >= 0 || F.down.indexOf(f) >= 0 || (F.roof && f === ROOF) || (F.lobby && f === LOBBY); }
 function firstFloor(b) { var F = flOf(b); return F.up[0] || '1층'; }
 function defaultSite() { return { bldgList: [], up: ['1층'], down: [], school: '중·고등학교' }; }
 
@@ -988,7 +988,7 @@ function addRound() {
   var rs = roundsOf(p), last = rs[rs.length - 1], n = last + 1, src = unitData(unitId(p.id, last)) || { site: defaultSite(), rooms: {} };
   var d = clone({ site: src.site, rooms: src.rooms || {}, frooms: src.frooms || {}, orooms: src.orooms || {} }), now = new Date().toISOString();
   // 직전 차수 복사 · 실 id는 그대로(차수 간 비교용) · 사진·첨부는 새 차수에서 따로
-  [d.rooms, d.frooms, d.orooms].forEach(function (R) { Object.keys(R).forEach(function (k) { R[k].photos = []; R[k].files = []; if (R[k].o && R[k].o.sat) R[k].o.sat = { base: R[k].o.sat.base, strokes: R[k].o.sat.strokes || {} }; /* 위성사진 원본·그린 선은 이어서 사용 */ }); });
+  [d.rooms, d.frooms, d.orooms].forEach(function (R) { Object.keys(R).forEach(function (k) { R[k].photos = []; R[k].files = []; R[k].done = false; if (R[k].o && R[k].o.sat) R[k].o.sat = { base: R[k].o.sat.base, strokes: R[k].o.sat.strokes || {} }; /* 위성사진 원본·그린 선은 이어서 사용 */ }); });
   d.site.modAt = now;
   lsSet('rc:p:' + unitId(p.id, n), d);
   p.rounds = (p.rounds || []).concat([{ n: n, createdAt: now }]); lsSet('rc:projects', S.projects);
@@ -1044,6 +1044,9 @@ function addRoom(type) {
   var r = S.mod === 'facility' ? makeFacRoom(S.bldg, S.floor, suggest(type), type) : makeRoom(S.bldg, S.floor, suggest(type), type);
   S.rooms[r.id] = r; S.cur = r.id; S.door = 0; markDirty(r.id); toast(r.name + ' 추가'); render();
 }
+// 실 점검 완료 표시 (왼쪽 목록에 '완료')
+function doneTag(r) { return r.done ? '<span class="pill done">완료</span>' : ''; }
+function doneBtn(r, st) { return btn('hb' + (r.done ? ' done' : ''), r.done ? '✓ 완료됨' : '완료', function () { upd(function (x) { x.done = !x.done; }); if (r.done) toast(r.name + ' 완료'); }, ' title="' + (r.done ? '누르면 완료 취소' : '이 실 점검을 마쳤으면 누르세요') + '"' + (st ? ' style="' + st + '"' : '')); }
 function upd(fn) { var r = S.rooms[S.cur]; if (!r) return; fn(r); markDirty(r.id); render(); }
 function cur() { var r = S.rooms[S.cur]; if (S.mod === 'outdoor') return r || null; return r && r.bldg === S.bldg && r.floor === S.floor ? r : null; }
 
@@ -1129,7 +1132,8 @@ function locbar() {
     '</div>' +
     '<span style="width:1px;background:#D1D5DB"></span><div style="display:flex;flex-direction:column;gap:2px;justify-content:center;flex:1 1 0;min-width:0">' +
     '<div class="row"><span class="fl">지하</span>' + s.down.map(fb).join('') + (S.floor === s.down[s.down.length - 1] ? delFloorBtn() : '') + btn('add', '+ 지하층 추가', function () { var f = 'B' + (s.down.length + 1); s.down.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) + schoolSel() + '</div>' +
-    '<div class="row"><span class="fl">지상</span>' + (S.bldg ? btn('lb' + (S.floor === COMMON ? ' on' : ''), S.mod === 'facility' ? '외부' : '외벽', function () { goto(S.bldg, COMMON); }, ' title="' + (S.mod === 'facility' ? '외부' : '외벽') + ' · 동 전체 1회 평가"') : '') + s.up.map(fb).join('') + (s.roof ? fb(ROOF) : '') + ((S.floor === ROOF && s.roof) || (S.floor === s.up[s.up.length - 1] && s.up.length > 1) ? delFloorBtn() : '') + btn('add', '+ 층 추가', function () { var f = (s.up.length + 1) + '층'; s.up.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) +
+    '<div class="row"><span class="fl">지상</span>' + (S.bldg ? btn('lb' + (S.floor === COMMON ? ' on' : ''), S.mod === 'facility' ? '외부' : '외벽', function () { goto(S.bldg, COMMON); }, ' title="' + (S.mod === 'facility' ? '외부' : '외벽') + ' · 동 전체 1회 평가"') : '') + (s.lobby ? fb(LOBBY) : '') + s.up.map(fb).join('') + (s.roof ? fb(ROOF) : '') + ((S.floor === ROOF && s.roof) || (S.floor === LOBBY && s.lobby) || (S.floor === s.up[s.up.length - 1] && s.up.length > 1) ? delFloorBtn() : '') + btn('add', '+ 층 추가', function () { var f = (s.up.length + 1) + '층'; s.up.push(f); markSite(); if (S.bldg) goto(S.bldg, f); else { S.floor = f; render(); } }) +
+      (s.lobby ? '' : btn('add', '+ 로비층 추가', function () { s.lobby = true; markSite(); if (S.bldg) goto(S.bldg, LOBBY); else { S.floor = LOBBY; render(); } }, ' title="1층 왼쪽에 로비층"')) +
       (s.roof ? '' : btn('add', '+ 옥상층 추가', function () { s.roof = true; markSite(); if (S.bldg) goto(S.bldg, ROOF); else { S.floor = ROOF; render(); } })) + '</div></div>' +
     (S.bldg ? btn('hb blue', '현장심사기록지 보기', function () { S.view = 'result'; render(); }, ' style="align-self:center"') : '') + '</div>';
 }
@@ -1138,7 +1142,7 @@ function aside() {
   var list = h.map(function (r) {
     var n = defsOf(r).filter(function (x) { return !x.rec; }).length;
     var meta = (r.ocr ? '가명칭 · ' : '') + r.type + (!r.fac && isGeneral(r.type) && r.type !== '계단' ? ' · 문 ' + r.doors.length + '개' : '') + ' · 사진 ' + r.photos.length;
-    return btn('room' + (r.id === S.cur ? ' on' : '') + (S.pick && r.id !== S.pick ? ' pick' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(meta) + '</span></span><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>',
+    return btn('room' + (r.id === S.cur ? ' on' : '') + (S.pick && r.id !== S.pick ? ' pick' : ''), '<span class="nm"><strong>' + esc(r.name) + '</strong><span>' + esc(meta) + '</span></span><span class="pill ' + (n ? 'ng' : 'ok') + '">' + (n ? '미흡 ' + n : '이상 없음') + '</span>' + doneTag(r),
       function () { if (S.pick) { pickFrom(r); return; } S.cur = r.id; S.door = 0; S.confirmDel = false; render(); });
   }).join('');
   return '<aside><div class="ahd"><span class="tt"><span class="bchip" title="' + esc(S.bldg) + '">' + esc(S.bldg) + '</span>' + esc(S.floor === COMMON ? (S.mod === 'facility' ? '외부 (동 전체)' : '외벽 (동 전체)') : S.floor) + ' (' + h.length + ')</span>' +
@@ -1163,14 +1167,14 @@ function mainPanel() {
   var gen = !r.fac && !r.out && isGeneral(r.type);
   var h = '<main><div class="rh"><div style="display:flex;flex-direction:column;flex:1 1 auto;min-width:0"><span class="meta">' + esc(r.out ? '외부환경안전 · 학교 전체' : r.bldg + ' ' + (r.floor === COMMON ? (r.fac ? '외부' : '외벽') : r.floor) + ' · ' + (r.ocr ? '실명판 인식 가명칭 · ' : '') + r.type) + (r.updatedAt ? ' · 수정 ' + esc(shortTime(r.updatedAt)) : '') + '</span>' +
     '<input id="roomName" aria-label="실 이름" value="' + esc(r.name) + '"></div>' +
-    (r.out ? '' : btn('hb' + (S.pick === r.id ? ' blue' : ''), S.pick === r.id ? '가져올 실을 고르세요…' : '다른 실 값 가져오기', function () { S.pick = S.pick === r.id ? null : r.id; S.confirmDel = false; render(); }) + btn('hb', '기본값으로', resetRoom)) + '</div>';
+    (r.out ? '' : btn('hb' + (S.pick === r.id ? ' blue' : ''), S.pick === r.id ? '가져올 실을 고르세요…' : '다른 실 값 가져오기', function () { S.pick = S.pick === r.id ? null : r.id; S.confirmDel = false; render(); }) + btn('hb', '기본값으로', resetRoom)) + (gen ? '' : doneBtn(r, 'min-width:110px')) + '</div>';
   if (S.confirmDel) h += '<div class="confirm" role="alert"><strong>' + esc(r.name) + '</strong><span>을(를) 삭제할까요? 입력 내용과 사진 기록 ' + r.photos.length + '장이 함께 지워집니다.</span>' +
     btn('hb', '삭제', delRoom, ' style="margin-left:auto;background:#B91C1C;color:#fff;border-color:#B91C1C"') + btn('hb', '취소', function () { S.confirmDel = false; render(); }) + '</div>';
   h += '<div class="scroll">';
   if (r.fac) h += facCards(r);
   else if (r.out) h += outCards(r);
   else if (gen) {
-    h += '<div class="card inline"><div class="grp" role="group" aria-label="영역구분"><b>영역구분</b>' + (function () { var fx = fixArea(r); var un = isUni(r.bldg), cu = un ? uArea(r) : r.area; if (un && fx) fx = uArea(r); return (un ? UNI_AREAS : AREAS).map(function (a) { if (fx && a !== fx) return '<span class="c dis" aria-disabled="true">' + a + '</span>'; return btn('c' + (cu === a ? ' on' : ''), a, function () { upd(function (x) { x.area = a; }); }); }).join('') + (fx ? '<span class="note" style="margin-left:4px">' + esc(r.type) + '은(는) ' + fx + ' 고정</span>' : '') + (un ? '<span class="note" style="margin-left:4px">대학교 기준</span>' : ''); })() + '</div>' +
+    h += '<div class="card inline"><div class="grp" role="group" aria-label="영역구분"><b>영역구분</b>' + (function () { var fx = fixArea(r); var un = isUni(r.bldg), cu = un ? uArea(r) : r.area; if (un && fx) fx = uArea(r); return (un ? UNI_AREAS : AREAS).map(function (a) { if (fx && a !== fx) return '<span class="c dis" aria-disabled="true">' + a + '</span>'; return btn('c' + (cu === a ? ' on' : ''), a, function () { upd(function (x) { x.area = a; }); }); }).join('') + (fx ? '<span class="note" style="margin-left:4px">' + esc(r.type) + '은(는) ' + fx + ' 고정</span>' : '') + (un ? '<span class="note" style="margin-left:4px">대학교 기준</span>' : ''); })() + doneBtn(r, 'margin-left:24px;min-width:110px') + '</div>' +
       '</div>';
     if (r.type === '계단') h += stairCard(r);
     if (r.type !== '계단') {
@@ -1306,6 +1310,7 @@ function delFloor(f) {
   var s = flOf(S.bldg), n = 0;
   [S.indRooms || S.rooms, S.facRooms || {}].forEach(function (R) { Object.keys(R).forEach(function (id) { var r = R[id]; if (r.floor !== f || r.bldg !== S.bldg) return; delMedia(r); delete R[id]; n++; }); });
   if (f === ROOF) s.roof = false;
+  else if (f === LOBBY) s.lobby = false;
   else if (s.up[s.up.length - 1] === f) s.up.pop();
   else if (s.down[s.down.length - 1] === f) s.down.pop();
   S.confirmDelFloor = null; touchData(); markSite();
@@ -1326,7 +1331,7 @@ function copyFloorTo(src, f) {
   tgt.forEach(function (r) { if (isBlankRoom(r)) delete S.rooms[r.id]; });
   var base = Date.now();
   src.forEach(function (r, i) {
-    var c = clone(r); c.id = rid(); c.floor = f; c.photos = []; c.files = []; c.order = base + i; c.updatedAt = new Date().toISOString();
+    var c = clone(r); c.id = rid(); c.floor = f; c.photos = []; c.files = []; c.done = false; c.order = base + i; c.updatedAt = new Date().toISOString();
     if (c.win && r.win && r.win.ground === newWin(r.floor).ground) c.win.ground = newWin(f).ground;
     S.rooms[c.id] = c;
   });
@@ -1335,7 +1340,7 @@ function copyFloorTo(src, f) {
 function openCopyFloor() {
   var src = here(); if (!src.length) return;
   var s = flOf(S.bldg), cnt = function (f) { return Object.keys(S.rooms).filter(function (k) { var r = S.rooms[k]; return r.bldg === S.bldg && r.floor === f && !isBlankRoom(r); }).length; };
-  var opts = s.down.concat(s.up).filter(function (f) { return f !== S.floor; });
+  var opts = s.down.concat(s.lobby ? [LOBBY] : [], s.up).filter(function (f) { return f !== S.floor; });
   var m = document.getElementById('modal');
   m.innerHTML = '<div class="modal" role="dialog" aria-label="층 복사"><form class="box" id="cf"><h3 style="margin:0 0 4px;font-size:16px">' + esc(S.bldg + ' ' + S.floor) + ' 복사</h3>' +
     '<p class="note" style="margin:0 0 10px">실 ' + src.length + '개의 이름·평가값을 복사합니다. 사진은 복사하지 않습니다.</p>' +
@@ -1881,8 +1886,8 @@ function mergeBackup(b) {
       inc.site.bldgList.forEach(function (x) {
         if (cur.site.bldgList.indexOf(x) < 0) cur.site.bldgList.push(x);
         var a = cur.site.floors[x], f = (inc.site.floors && inc.site.floors[x]) || legacy(inc.site);
-        if (!a) { cur.site.floors[x] = { up: f.up.slice(), down: f.down.slice(), roof: !!f.roof }; return; }
-        f.up.forEach(function (k) { if (a.up.indexOf(k) < 0) a.up.push(k); }); f.down.forEach(function (k) { if (a.down.indexOf(k) < 0) a.down.push(k); }); if (f.roof) a.roof = true;
+        if (!a) { cur.site.floors[x] = { up: f.up.slice(), down: f.down.slice(), roof: !!f.roof, lobby: !!f.lobby }; return; }
+        f.up.forEach(function (k) { if (a.up.indexOf(k) < 0) a.up.push(k); }); f.down.forEach(function (k) { if (a.down.indexOf(k) < 0) a.down.push(k); }); if (f.roof) a.roof = true; if (f.lobby) a.lobby = true;
         a.up.sort(function (p, q) { return floorNum(p) - floorNum(q); }); a.down.sort(function (p, q) { return floorNum(q) - floorNum(p); });
       });
     }
@@ -2008,11 +2013,18 @@ var SC_AREAS = ['교수학습영역', '지원영역', '공용영역'];
 // 해당/전체 비율 구간 → 계수: 100% → 1, 75% 이상 → 0.75, 50% 이상 → 0.5, 25% 이상 → 0.25, 그 미만 → 0
 function scCoef(q) { return q >= 1 ? 1 : q >= 0.75 ? 0.75 : q >= 0.5 ? 0.5 : q >= 0.25 ? 0.25 : 0; }
 function scArea(r) { return r.area === '관리행정영역' ? '지원영역' : r.area; } // B-1-2: 관리행정영역은 지원영역으로 합산
+// 대학교 전체 취합: 대학교 기준 동을 모두 합쳐 한 번에 채점 (층은 '동 층'으로 구분)
+var ALL_UNI = '*';
+function uniBldgs() { return S.site.bldgList.filter(isUni); }
+function scoreRoomsOf(b) {
+  if (b !== ALL_UNI) return allRooms().filter(function (r) { return r.bldg === b; });
+  return allRooms().filter(function (r) { return isUni(r.bldg); }).map(function (r) { var x = Object.create(r); x.floor = r.bldg + ' ' + r.floor; return x; });
+}
 function scoreRows(b) {
-  var rooms = allRooms().filter(function (r) { return r.bldg === b; });
+  var rooms = scoreRoomsOf(b);
   rooms.forEach(normDoors); rooms.forEach(fixArea);
   var gen = rooms.filter(function (r) { return isGeneral(r.type); });
-  var rows = [], C = critOf(b);
+  var rows = [], C = critOf(b === ALL_UNI ? uniBldgs()[0] : b);
   var row = function (grp, item, pts, list, ok, opt) {
     opt = opt || {};
     var key = grp.split('|')[0] + ' ' + item;
@@ -2181,8 +2193,10 @@ function uniScore(rooms, gen, rows, row, C) {
 function scorePage() {
   var bl = S.site.bldgList;
   if (!bl.length) return '<div class="page"><p class="note">동을 먼저 추가하세요.</p></div>';
-  if (bl.indexOf(S.scoreB) < 0) S.scoreB = S.bldg && bl.indexOf(S.bldg) >= 0 ? S.bldg : bl[0];
-  var b = S.scoreB, d = scoreRows(b), rows = d.rows, g = d.glass, C = d.crit;
+  var ub = uniBldgs(), allOk = ub.length > 0 && bl.length > 1;
+  if (S.scoreB === ALL_UNI && !allOk) S.scoreB = null;
+  if (S.scoreB !== ALL_UNI && bl.indexOf(S.scoreB) < 0) S.scoreB = allOk && ub.length === bl.length ? ALL_UNI : S.bldg && bl.indexOf(S.bldg) >= 0 ? S.bldg : bl[0];
+  var b = S.scoreB, inB = function (r) { return b === ALL_UNI ? isUni(r.bldg) : r.bldg === b; }, d = scoreRows(b), rows = d.rows, g = d.glass, C = d.crit;
   var fmt = function (v) { return (Math.round(v * 100) / 100).toFixed(2); };
   var na = '<td class="sv na">해당없음</td>';
   var total = 0;
@@ -2203,7 +2217,7 @@ function scorePage() {
       var gs = g.n ? g.final : null; if (gs != null) total += gs;
       body += '<tr><th class="sg" rowspan="2">B-2-2<br>유리재료의 안전조치</th><td class="sp">6</td><td class="si">강화유리 + 비산방지필름 적용</td><td class="sn" rowspan="2">' + (g.tS + g.tA + g.tN) + '</td><td class="sh">' + g.tS + '</td>' + (gs == null ? '<td class="sv na" rowspan="2">해당없음</td>' : '<td class="sv" rowspan="2">' + fmt(gs) + '</td>') + '</tr>' +
         '<tr><td class="sp">4</td><td class="si">강화유리 적용 or 일반유리 + 비산방지필름 적용</td><td class="sh">' + g.tA + '</td></tr>';
-      var inR = allRooms().filter(function (r) { return r.bldg === b && isGeneral(r.type); }), outR = allRooms().filter(function (r) { return r.bldg === b && r.type === '외벽'; });
+      var inR = allRooms().filter(function (r) { return inB(r) && isGeneral(r.type); }), outR = allRooms().filter(function (r) { return inB(r) && r.type === '외벽'; });
       var cnt = function (list, v) { return list.filter(function (r) { return r.fin && r.fin.finish === v; }).length; };
       // 실내재료 (엑셀 산정식): 전체 0 → 해당없음 · 불연+준불연=전체이고 불연=준불연 → 2.5 · 불연+준불연>전체 → 점수확인필요 · 그 외 4×계수(불연비율) + 2×계수(준불연비율)
       var iD = inR.length, iA = cnt(inR, '불연'), iB = cnt(inR, '준불연'), inScore;
@@ -2226,13 +2240,14 @@ function scorePage() {
         '<tr><td class="sp">3</td><td class="si">실외재료 · 준불연</td><td class="sh">' + num(oB) + '</td></tr>';
     }
   }
-  var tabs = bl.map(function (x) { return btn('lb' + (x === b ? ' on' : ''), esc(x), function () { S.scoreB = x; render(); }); }).join('');
+  var tabs = (allOk ? btn('lb' + (b === ALL_UNI ? ' on' : ''), '전체 취합 (대학교 ' + ub.length + '개 동)', function () { S.scoreB = ALL_UNI; render(); }, ' style="font-weight:800"') : '') +
+    bl.map(function (x) { return btn('lb' + (x === b ? ' on' : ''), esc(x), function () { S.scoreB = x; render(); }); }).join('');
   return '<div class="page"><div class="row" style="margin-bottom:8px;gap:10px"><h2 style="margin:0;font-size:17px">동별 점수표</h2><div class="row">' + tabs + '</div>' +
     '<span class="critb' + (C.draft ? ' draft' : '') + '">평가기준: <b>' + esc(C.school) + '</b></span>' +
     '</div>' +
     (C.draft ? '<p class="critn">' + esc(C.note || (C.school + ' 기준표가 아직 반영되지 않아 중·고등학교 배점으로 계산합니다.')) + '</p>' : '') +
     '<div style="overflow:auto"><table class="st"><thead><tr><th style="width:150px">구분</th><th style="width:56px">배점</th><th style="width:380px">항목</th><th style="width:60px">전체</th><th style="width:60px">해당</th><th style="width:88px">평점</th></tr></thead><tbody>' + body +
-    '<tr class="tot"><th colspan="5">' + esc(b) + ' 합계 (입력된 항목 기준)</th><td class="sv">' + fmt(total) + '</td></tr></tbody></table></div>' +
+    '<tr class="tot"><th colspan="5">' + (b === ALL_UNI ? '프로젝트 전체 (대학교 ' + esc(ub.join(', ')) + ') 합계' : esc(b) + ' 합계') + ' (입력된 항목 기준)</th><td class="sv">' + fmt(total) + '</td></tr></tbody></table></div>' +
     '<p class="note">빨간 글씨 항목은 아직 입력 화면에 없는 항목입니다. 전체 = 평가한 개소(B-1-2는 실 개수, 불법촬영 카드는 층 수), 해당 = 기준에 맞는 개소(감점 항목은 위반 개소).</p></div>';
 }
 // PDF 출력 · 기기 인쇄 화면(A4)으로 → iPad: 인쇄 옵션에서 공유 ▸ PDF로 저장 / PC: 대상 'PDF로 저장'
@@ -2441,7 +2456,7 @@ function reportSection(rooms, prevRooms, prevLabel) {
       items.forEach(function (x) { if (!by[x.bldg]) { by[x.bldg] = []; order.push(x.bldg); } by[x.bldg].push(x); });
       return '<div class="rb">' + order.map(function (b) {
         // 층별로 묶기: 층 이름은 한 번만
-        var F = S.site.floors && S.site.floors[b], ord = F ? F.down.slice().reverse().concat(F.up, [ROOF]) : [];
+        var F = S.site.floors && S.site.floors[b], ord = F ? F.down.slice().reverse().concat([LOBBY], F.up, [ROOF]) : [];
         var fo = [], fb = {};
         by[b].forEach(function (x) { var f = x.floor || ''; if (!fb[f]) { fb[f] = []; fo.push(f); } fb[f].push(x); });
         var rk = function (f) { var i = ord.indexOf(f); return f === '' ? -1 : i < 0 ? 999 : i; };
